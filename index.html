@@ -432,7 +432,10 @@ function releaseWakeLock(){
   try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{
-  if(S.listening && document.visibilityState==='visible') reqWakeLock();
+  if(S.listening && document.visibilityState==='visible'){
+    reqWakeLock();
+    if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  }
 });
 function startKeepAlive(){
   // near-silent tone keeps the audio session alive in background
@@ -461,10 +464,13 @@ function setupMediaSession(){
 
 async function startListening(){
   try{
-    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    await audioCtx.resume();
+    stopTone();
+    // iOS: recrear el contexto de audio junto con el micrófono evita entrada en silencio
+    if(audioCtx){ try{ await audioCtx.close(); }catch(e){} audioCtx=null; }
     micStream = await navigator.mediaDevices.getUserMedia({ audio:{
       echoCancellation:false, noiseSuppression:false, autoGainControl:false }});
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    await audioCtx.resume();
     const src=audioCtx.createMediaStreamSource(micStream);
     analyser=audioCtx.createAnalyser();
     analyser.fftSize=CFG().fft;
