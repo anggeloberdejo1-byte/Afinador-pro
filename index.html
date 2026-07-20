@@ -74,6 +74,18 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 
 /* ---------- cards ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(90,80,40,.05)}
+.card.main{
+  padding:30px 22px;border:2px solid var(--gold-soft);border-radius:18px;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);
+  box-shadow:0 10px 30px rgba(90,80,40,.15), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.card.main .note-row{min-height:114px}
+.card.main .note-name{font-size:104px;text-shadow:0 3px 0 rgba(0,0,0,.07)}
+.card.main .note-oct{font-size:36px}
+.card.main .cents-big{font-size:26px}
+.card.main .freq-row{font-size:14px}
+.card.main .viz{height:265px}
+.card.main #listenBtn{padding:18px;font-size:18px;border-radius:14px;box-shadow:0 4px 12px rgba(73,122,84,.3)}
 .card h2{font-size:11px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .card h2 .hint{letter-spacing:0;text-transform:none;font-size:11px}
 
@@ -132,6 +144,9 @@ select{border:1px solid var(--line);background:var(--btn);border-radius:9px;padd
 .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
 .notes-grid .chip{text-align:center;padding:10px 4px}
 .chip.playing{background:var(--gold);border-color:var(--gold);color:#fff}
+.chip.tool{background:transparent;border-color:var(--green);color:var(--green)}
+.chip.tool:hover{background:var(--green-dark);border-color:var(--green-dark);color:#fdfbf0}
+.chip.tool.active{background:var(--green);border-color:var(--green);color:#fdfbf0}
 .tone-tip{font-size:11px;color:var(--muted);margin-top:10px}
 
 /* ---------- congas ---------- */
@@ -179,6 +194,9 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
 @media (max-width:560px){
   .note-name{font-size:64px}
   .viz{height:190px}
+  .card.main .note-name{font-size:80px}
+  .card.main .note-row{min-height:92px}
+  .card.main .viz{height:225px}
 }
 </style>
 </head>
@@ -202,7 +220,7 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
 <div class="perc-note" id="percNote"></div>
 
 <!-- ============ MAIN TUNER ============ -->
-<div class="card">
+<div class="card main">
   <div class="display">
     <div class="note-row">
       <span class="note-name" id="noteName">—</span>
@@ -292,7 +310,8 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
 <div class="card conga-card">
   <h2><span id="congaTitle"></span> <span class="hint" id="congaHint"></span></h2>
   <div class="preset-row" id="congaChips"></div>
-  <svg id="congaSvg" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="preset-row" id="congaTools"></div>
+  <svg id="congaSvg" viewBox="0 0 400 285" xmlns="http://www.w3.org/2000/svg"></svg>
   <div class="conga-tip" id="congaTip"></div>
 </div>
 
@@ -669,10 +688,13 @@ function drawGraph(){
   ctx.fillText('-25¢',6*dpr,h/2+(25/50)*(h/2-10)+12*dpr);
   ctx.strokeStyle=PAL.gold; ctx.lineWidth=2.5*dpr; ctx.lineJoin='round';
   ctx.beginPath(); let started=false;
+  const step=w/(GRAPH_LEN-1);
   for(let i=0;i<graphData.length;i++){
     const v=graphData[i];
     if(v===null){ started=false; continue; }
-    const x=(i/(GRAPH_LEN-1))*w, y=h/2-(v/50)*(h/2-10);
+    const x=w/2+(i-(graphData.length-1))*step;
+    if(x<0){ started=false; continue; }
+    const y=h/2-(v/50)*(h/2-10);
     if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
   }
   ctx.stroke();
@@ -680,7 +702,7 @@ function drawGraph(){
   if(last!==null&&last!==undefined){
     const y=h/2-(last/50)*(h/2-10);
     ctx.fillStyle=Math.abs(last)<=S.tol?PAL.green:PAL.gold;
-    ctx.beginPath(); ctx.arc(w-4*dpr,y,5*dpr,0,7); ctx.fill();
+    ctx.beginPath(); ctx.arc(w/2,y,5.5*dpr,0,7); ctx.fill();
   }
 }
 function fitCanvas(cv){
@@ -775,8 +797,8 @@ const CONGA_PRESETS = {
     {x:200,y:190,r:40, n:'1', v:[48]}
   ]},
   bongo:{ labelKey:'Bongó', tipKey:'pBongo', drums:[
-    {x:145,y:130,r:54, n:'hembra', v:[36]},
-    {x:272,y:130,r:38, n:'macho', v:[67]}
+    {x:130,y:130,r:38, n:'macho', v:[67]},
+    {x:275,y:130,r:54, n:'hembra', v:[36]}
   ]},
   timbal:{ labelKey:'Timbal', tipKey:'pTimbal', drums:[
     {x:145,y:130,r:52, n:'♭', v:[55]},
@@ -789,12 +811,11 @@ const congaChipsEl=$('congaChips'), congaSvg=$('congaSvg'), congaTip=$('congaTip
 
 function renderCongas(){
   const p=CONGA_PRESETS[S.congaPreset];
-  let chips=Object.entries(CONGA_PRESETS).map(([k,v])=>
+  congaChipsEl.innerHTML=Object.entries(CONGA_PRESETS).map(([k,v])=>
     `<button class="chip ${k===S.congaPreset?'active':''}" data-k="${k}">${v.labelKey}</button>`).join('');
-  chips+=`<span class="spacer"></span>
-    <button class="chip ${S.congaEdit?'active':''}" id="editChip">${T().edit}</button>
-    <button class="chip" id="resetChip">${T().reset}</button>`;
-  congaChipsEl.innerHTML=chips;
+  document.getElementById('congaTools').innerHTML=
+    `<button class="chip tool ${S.congaEdit?'active':''}" id="editChip">${T().edit}</button>
+     <button class="chip tool" id="resetChip">${T().reset}</button>`;
   congaChipsEl.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{
     S.congaPreset=b.dataset.k; save(); renderCongas();
   });
@@ -817,12 +838,13 @@ function renderCongas(){
       ${d.n?`<text class="nnum" x="${d.x}" y="${d.y-16}" text-anchor="middle">${d.n}</text>`:''}
     </g>`;
     if(S.congaEdit){
+      const ey=d.y+d.r+17;
       g+=`<g class="eb" data-i="${i}" data-dir="-1">
-        <circle cx="${d.x-d.r-14}" cy="${d.y}" r="11"/>
-        <text x="${d.x-d.r-14}" y="${d.y+5}" text-anchor="middle">−</text></g>
+        <circle cx="${d.x-19}" cy="${ey}" r="12"/>
+        <text x="${d.x-19}" y="${ey+5}" text-anchor="middle">−</text></g>
       <g class="eb" data-i="${i}" data-dir="1">
-        <circle cx="${d.x+d.r+14}" cy="${d.y}" r="11"/>
-        <text x="${d.x+d.r+14}" y="${d.y+5}" text-anchor="middle">+</text></g>`;
+        <circle cx="${d.x+19}" cy="${ey}" r="12"/>
+        <text x="${d.x+19}" y="${ey+5}" text-anchor="middle">+</text></g>`;
     }
     return g;
   }).join('');
