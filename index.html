@@ -23,7 +23,7 @@
   --red:#b4553f; --line:#e6dfc6;
   --band1:#f0ebd6; --band2:#e8e1c8; --veil:rgba(251,248,236,.55); --tick:#b6ae90;
   --mono:ui-monospace,'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
-  --radius:14px;
+  --radius:14px; --on-green:#fdfbf0;
 }
 body[data-theme="oscuro"]{
   --bg:#211f19; --stripe:rgba(255,255,255,.03);
@@ -72,7 +72,29 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .brand .tag{font-size:11px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;display:block}
 .modes{max-width:100%;display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
 .modes button{border:0;background:transparent;padding:8px 20px;border-radius:999px;cursor:pointer;font-size:13px;color:var(--muted);letter-spacing:.04em;transition:all .18s}
-.modes button.active{background:var(--green);color:#fdfbf0}
+.modes button.active{background:var(--green);color:var(--on-green)}
+
+/* ---------- ajustes (engrane) ---------- */
+.engrane{flex-shrink:0;width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s}
+.engrane:hover{color:var(--green)}
+.engrane svg{width:22px;height:22px}
+button:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ajustes{width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);border:1px solid var(--line);border-radius:14px;padding:0;background:var(--card);color:var(--ink);box-shadow:0 20px 50px rgba(0,0,0,.3);margin:auto}
+.ajustes::backdrop{background:rgba(20,16,12,.5)}
+.ajustes-cabeza{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:1}
+.ajustes-cabeza h2{font-size:18px;letter-spacing:.12em;text-transform:uppercase;color:var(--green-ink)}
+.ajustes-cuerpo{padding:16px 18px 20px}
+.aj-seccion+.aj-seccion{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.aj-titulo{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.idiomas{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.idiomas button{font-size:12.5px;font-weight:600;padding:10px 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
+.idiomas button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.temas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tema{border:2px solid var(--line);border-radius:10px;padding:10px 4px;cursor:pointer;background:var(--bg);text-align:center;color:var(--ink)}
+.tema.active{border-color:var(--green)}
+.tema .muestras{display:flex;gap:4px;justify-content:center;margin-bottom:6px}
+.tema .muestras i{width:16px;height:16px;border-radius:50%;border:1px solid rgba(128,128,128,.35)}
+.tema .nom{font-size:10.5px}
 
 /* ---------- cards ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(90,80,40,.05)}
@@ -109,7 +131,7 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 /* ---------- view tabs ---------- */
 .viewtabs{display:flex;justify-content:center;gap:6px;margin:14px 0 10px}
 .viewtabs button{border:1px solid var(--line);background:var(--card2);color:var(--muted);padding:6px 16px;border-radius:999px;font-size:12px;cursor:pointer;transition:all .15s}
-.viewtabs button.active{background:var(--green);border-color:var(--green);color:#fdfbf0}
+.viewtabs button.active{background:var(--green);border-color:var(--green);color:var(--on-green)}
 .viz{position:relative;height:230px}
 .viz>*{position:absolute;inset:0;width:100%;height:100%;display:none}
 .viz>.show{display:block}
@@ -118,7 +140,7 @@ canvas{display:block;width:100%;height:100%}
 
 /* ---------- listen ---------- */
 .listen-row{display:flex;flex-direction:column;gap:12px;margin-top:16px}
-#listenBtn{border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:700;letter-spacing:.03em;background:var(--green);color:#fdfbf0;cursor:pointer;transition:background .18s;width:100%}
+#listenBtn{border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:700;letter-spacing:.03em;background:var(--green);color:var(--on-green);cursor:pointer;transition:background .18s;width:100%}
 #listenBtn:hover{background:var(--green-dark)}
 #listenBtn.listening{background:var(--red)}
 .sens{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--muted)}
@@ -142,13 +164,13 @@ select{border:1px solid var(--line);background:var(--btn);border-radius:9px;padd
 .oct-row .lbl{font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-right:4px}
 .chip{border:1px solid var(--line);background:var(--btn);border-radius:9px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);transition:all .15s}
 .chip:hover{background:var(--btn-hover)}
-.chip.active{background:var(--green);border-color:var(--green);color:#fdfbf0}
+.chip.active{background:var(--green);border-color:var(--green);color:var(--on-green)}
 .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
 .notes-grid .chip{text-align:center;padding:10px 4px}
 .chip.playing{background:var(--gold);border-color:var(--gold);color:#fff}
 .chip.tool{background:transparent;border-color:var(--green);color:var(--green)}
-.chip.tool:hover{background:var(--green-dark);border-color:var(--green-dark);color:#fdfbf0}
-.chip.tool.active{background:var(--green);border-color:var(--green);color:#fdfbf0}
+.chip.tool:hover{background:var(--green-dark);border-color:var(--green-dark);color:var(--on-green)}
+.chip.tool.active{background:var(--green);border-color:var(--green);color:var(--on-green)}
 .tone-tip{font-size:11px;color:var(--muted);margin-top:10px}
 
 /* ---------- congas ---------- */
@@ -210,6 +232,7 @@ footer .badge{height:150px;width:auto;display:block;margin:0 auto 10px;filter:dr
 footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:.1em;margin-bottom:4px}
 
 @media (max-width:560px){
+  .modes{order:3}
   .modes button{padding:8px 11px;font-size:12px}
   .note-name{font-size:64px}
   .viz{height:190px}
@@ -235,7 +258,36 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
     <button id="tabPerc">Percusión</button>
     <button id="tabInst">Instrumentos</button>
   </div>
+  <button class="engrane" id="abrirAjustes" type="button" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
 </header>
+
+<dialog class="ajustes" id="ajustes">
+  <div class="ajustes-cabeza">
+    <h2 id="ajTitulo">Ajustes</h2>
+    <button class="chip" id="cerrarAjustes" type="button">Cerrar</button>
+  </div>
+  <div class="ajustes-cuerpo">
+    <div class="aj-seccion">
+      <p class="aj-titulo" id="ajIdioma">Idioma</p>
+      <div class="idiomas" id="idiomas">
+        <button type="button" data-idioma="es">Español</button>
+        <button type="button" data-idioma="en">English</button>
+        <button type="button" data-idioma="pt">Português</button>
+        <button type="button" data-idioma="fr">Français</button>
+        <button type="button" data-idioma="de">Deutsch</button>
+        <button type="button" data-idioma="ru">Русский</button>
+        <button type="button" data-idioma="zh">中文</button>
+        <button type="button" data-idioma="ja">日本語</button>
+      </div>
+    </div>
+    <div class="aj-seccion">
+      <p class="aj-titulo" id="ajPaleta">Paleta de colores</p>
+      <div class="temas" id="temas"></div>
+    </div>
+  </div>
+</dialog>
 
 <div class="perc-note" id="percNote"></div>
 
@@ -305,22 +357,6 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
         <button id="tolMinus">−</button><span class="num" id="tolVal">5</span><button id="tolPlus">+</button>
       </div>
       <span class="lbl">¢</span>
-    </div>
-    <div class="setting">
-      <span class="lbl" id="langLbl"></span>
-      <select id="langSel">
-        <option value="es">Español</option><option value="en">English</option>
-        <option value="pt">Português</option><option value="fr">Français</option>
-        <option value="de">Deutsch</option><option value="ru">Русский</option>
-        <option value="zh">中文</option><option value="ja">日本語</option>
-      </select>
-    </div>
-    <div class="setting">
-      <span class="lbl" id="themeLbl"></span>
-      <select id="themeSel">
-        <option value="crema"></option><option value="oscuro"></option>
-        <option value="cobre"></option><option value="bosque"></option>
-      </select>
     </div>
   </div>
 </div>
@@ -406,6 +442,17 @@ zh:{guardarComo:'💾 另存为…',nombreAfin:'调音名称',guardar:'保存',b
 ja:{guardarComo:'💾 名前を付けて保存…',nombreAfin:'チューニング名',guardar:'保存',borrar:'🗑 削除',borrarConf:'保存したチューニングを削除しますか？',tipMia:'あなたが保存したチューニング。✎ 編集で音を変更でき、変更は自動保存されます。'}
 };
 for (const k in I18N_MIAS) Object.assign(I18N[k], I18N_MIAS[k]);
+const I18N_AJUSTES = {
+es:{ajustes:'Ajustes',cerrar:'Cerrar',paleta:'Paleta de colores'},
+en:{ajustes:'Settings',cerrar:'Close',paleta:'Color palette'},
+pt:{ajustes:'Ajustes',cerrar:'Fechar',paleta:'Paleta de cores'},
+fr:{ajustes:'Réglages',cerrar:'Fermer',paleta:'Palette de couleurs'},
+de:{ajustes:'Einstellungen',cerrar:'Schließen',paleta:'Farbpalette'},
+ru:{ajustes:'Настройки',cerrar:'Закрыть',paleta:'Цветовая палитра'},
+zh:{ajustes:'设置',cerrar:'关闭',paleta:'配色'},
+ja:{ajustes:'設定',cerrar:'閉じる',paleta:'カラーパレット'}
+};
+for (const k in I18N_AJUSTES) Object.assign(I18N[k], I18N_AJUSTES[k]);
 function escHtml(x){ return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const SOLFEO = {
@@ -499,7 +546,7 @@ function load(){
     const d=JSON.parse(localStorage.getItem(LS_KEY)||'null');
     if(!d) return;
     if(I18N[d.lang]) S.lang=d.lang;
-    if(['crema','oscuro','cobre','bosque'].includes(d.theme)) S.theme=d.theme;
+    if(TEMAS[d.theme]) S.theme=d.theme;
     if(d.a4>=430&&d.a4<=450) S.a4=d.a4;
     if(TEMPERAMENTS[d.temp]) S.temp=d.temp;
     if(d.tol>=1&&d.tol<=20) S.tol=d.tol;
@@ -745,6 +792,25 @@ function clearDisplay(keepListening){
 }
 
 /* ================= theme palette ================= */
+// Las 4 originales del afinador (definidas en CSS) + las 12 paletas de la familia de apps
+const TEMAS = {
+  crema:{ t:'thCrema', css:true, m:['#f2eedf','#4d7f5c','#b0563d'] },
+  oscuro:{ t:'thOscuro', css:true, m:['#211f19','#6fae7f','#d9b959'] },
+  cobre:{ t:'thCobre', css:true, m:['#f3e5d7','#ad6a33','#b98c2e'] },
+  bosque:{ t:'thBosque', css:true, m:['#e6ecdd','#3f7a4c','#b0a23c'] },
+  calido: { es: 'Cálido', en: 'Warm', vars: { ink: '#241c15', bg: '#f7f0e2', surface: '#fffbf2', 'surface-2': '#eedfc3', parchment: '#34291e', 'parchment-dim': '#7a6c58', brass: '#4f8064', ember: '#b14e37', verdigris: '#b8871f', rust: '#93583a', focus: '#c99a2e' } },
+  dia: { es: 'Día', en: 'Day', vars: { ink: '#1a2331', bg: '#f3f9ff', surface: '#ffffff', 'surface-2': '#e1edf9', parchment: '#1a2331', 'parchment-dim': '#5c7089', brass: '#2f8fd1', ember: '#ef8354', verdigris: '#2bb3a3', rust: '#ef8354', focus: '#2f8fd1' } },
+  noche: { es: 'Noche', en: 'Night', vars: { ink: '#0b1220', bg: '#0b1220', surface: '#101a2c', 'surface-2': '#182640', parchment: '#e8f0fb', 'parchment-dim': '#7791b3', brass: '#4fd8ff', ember: '#7c93ff', verdigris: '#4fd8ff', rust: '#7c93ff', focus: '#7c93ff' } },
+  feliz: { es: 'Feliz', en: 'Happy', vars: { ink: '#3a2b1a', bg: '#fff6e9', surface: '#fffdf7', 'surface-2': '#ffe8c2', parchment: '#3a2b1a', 'parchment-dim': '#9c7d55', brass: '#ff6f59', ember: '#2ec4b6', verdigris: '#2ec4b6', rust: '#ff6f59', focus: '#ffb400' } },
+  serio: { es: 'Serio', en: 'Serious', vars: { ink: '#1b1e22', bg: '#1b1e22', surface: '#24282e', 'surface-2': '#2f343b', parchment: '#e6e8eb', 'parchment-dim': '#8a939e', brass: '#8fa1b3', ember: '#c9a27a', verdigris: '#5c6773', rust: '#9aa5b1', focus: '#9aa5b1' } },
+  grafito: { es: 'Grafito y oro', en: 'Graphite & gold', vars: { ink: '#14161a', bg: '#121417', surface: '#1b1e23', 'surface-2': '#272b31', parchment: '#ece8df', 'parchment-dim': '#8f949b', brass: '#c9a96e', ember: '#d06a52', verdigris: '#7fa38c', rust: '#a8744f', focus: '#e3d3a8' } },
+  vino: { es: 'Vino tinto', en: 'Red wine', vars: { ink: '#1a0f11', bg: '#1a1012', surface: '#251719', 'surface-2': '#362224', parchment: '#f2e7de', 'parchment-dim': '#a8918a', brass: '#c49a5b', ember: '#d0566a', verdigris: '#8a9a6e', rust: '#c2714f', focus: '#e0c9a6' } },
+  pizarra: { es: 'Pizarra', en: 'Slate', vars: { ink: '#f5f7f9', bg: '#eceff2', surface: '#f9fafb', 'surface-2': '#dbe1e7', parchment: '#1f2933', 'parchment-dim': '#5f6b78', brass: '#2f4a63', ember: '#a3503a', verdigris: '#5b7f6b', rust: '#8a6d4b', focus: '#7b8fa6' } },
+  lofi: { es: 'Lo-fi', en: 'Lo-fi', vars: { ink: '#1e1b2e', bg: '#1e1b2e', surface: '#28243b', 'surface-2': '#353050', parchment: '#ece6f5', 'parchment-dim': '#9b93b6', brass: '#a493ff', ember: '#ff9fb2', verdigris: '#7fd1c7', rust: '#ffc48c', focus: '#f5e17a' } },
+  atardecer: { es: 'Atardecer', en: 'Sunset', vars: { ink: '#fffaf6', bg: '#fdf0ea', surface: '#fffaf7', 'surface-2': '#f5dcd1', parchment: '#3d2c33', 'parchment-dim': '#957c83', brass: '#c05e52', ember: '#7f6bb8', verdigris: '#d99a5c', rust: '#b97a92', focus: '#e0b04f' } },
+  oceano: { es: 'Océano', en: 'Ocean', vars: { ink: '#0f2027', bg: '#0f2027', surface: '#16303a', 'surface-2': '#1f404c', parchment: '#e3f2f1', 'parchment-dim': '#86aeb0', brass: '#5cc8b5', ember: '#f2a65a', verdigris: '#8fc9ea', rust: '#e98a8a', focus: '#f3dd7d' } },
+  matcha: { es: 'Matcha', en: 'Matcha', vars: { ink: '#fbfcf8', bg: '#eff3e9', surface: '#fbfcf8', 'surface-2': '#dce5d0', parchment: '#2b3326', 'parchment-dim': '#6d7b62', brass: '#5f8a4e', ember: '#c4775e', verdigris: '#8aa64b', rust: '#9b7650', focus: '#d1a94a' } }
+};
 const PAL={};
 function refreshPalette(){
   const cs=getComputedStyle(document.body);
@@ -1137,21 +1203,81 @@ function applyLang(){
   $('sensLbl').textContent=t.sens;
   $('calibTitle').textContent=t.calib;
   $('temperLbl').textContent=t.temper; $('tolLbl').textContent=t.tol;
-  $('langLbl').textContent=t.lang; $('themeLbl').textContent=t.theme;
+  $('ajTitulo').textContent=t.ajustes; $('cerrarAjustes').textContent=t.cerrar;
+  $('ajIdioma').textContent=t.lang; $('ajPaleta').textContent=t.paleta;
+  $('abrirAjustes').setAttribute('aria-label',t.ajustes);
+  document.querySelectorAll('#idiomas button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.idioma===S.lang?'true':'false'));
+  pintarTemas();
   const ts=$('tempSel');
   ts.options[0].text=t.tEqual; ts.options[1].text=t.tJust; ts.options[2].text=t.tPyth;
-  const th=$('themeSel');
-  th.options[0].text=t.thCrema; th.options[1].text=t.thOscuro; th.options[2].text=t.thCobre; th.options[3].text=t.thBosque;
   $('tonesTitle').textContent=t.tones; $('octLbl').textContent=t.oct; $('toneTip').textContent=t.toneTip;
   $('congaTitle').textContent=t.conga; $('congaHint').textContent=t.congaHint;
   $('histTitle').textContent=t.hist; $('clearHist').textContent=t.clear; $('histEmpty').textContent=t.histEmpty;
   $('footTag').textContent=t.footTag;
   renderTones(); renderCongas(); renderInst();
 }
+function mezcla(a,b,p){
+  const h=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));
+  const A=h(a), B=h(b);
+  return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*p).toString(16).padStart(2,'0')).join('');
+}
+function esOscuro(hex){
+  const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+  return (0.299*r+0.587*g+0.114*b)<128;
+}
+// convierte una paleta de la familia (Metrónomo) a las variables de este afinador
+function varsDePaleta(v){
+  const osc=esOscuro(v.bg);
+  return {
+    bg:v.bg, stripe: osc?'rgba(255,255,255,.03)':'rgba(255,255,255,.3)',
+    card:v.surface, card2:mezcla(v.surface,v['surface-2'],.45),
+    ink:v.parchment, muted:v['parchment-dim'],
+    green:v.brass, 'green-dark':mezcla(v.brass, osc?'#ffffff':'#000000', .18),
+    'green-ink':mezcla(v.brass, v.parchment, .4),
+    gold:v.ember, 'gold-soft':mezcla(v.ember, v.surface, .68),
+    btn:v['surface-2'], 'btn-hover':mezcla(v['surface-2'], v.parchment, .12),
+    red:v.rust, line:v['surface-2'],
+    band1:mezcla(v.surface,v['surface-2'],.5), band2:v['surface-2'],
+    veil:v.surface+'8c', tick:mezcla(v['surface-2'],v['parchment-dim'],.6),
+    'on-green': esOscuro(v.brass)?'#fdfbf0':'#14161a'
+  };
+}
+const VARS_TEMA=['bg','stripe','card','card2','ink','muted','green','green-dark','green-ink','gold','gold-soft','btn','btn-hover','red','line','band1','band2','veil','tick','on-green'];
+function nombreTema(k){
+  const tm=TEMAS[k];
+  return tm.t ? T()[tm.t] : (S.lang==='es'?tm.es:tm.en);
+}
 function applyTheme(){
-  document.body.dataset.theme=S.theme;
+  if(!TEMAS[S.theme]) S.theme='crema';
+  const tm=TEMAS[S.theme], st=document.body.style;
+  VARS_TEMA.forEach(k=>st.removeProperty('--'+k));
+  if(tm.css) document.body.dataset.theme=S.theme;
+  else{
+    delete document.body.dataset.theme;
+    const vars=varsDePaleta(tm.vars);
+    for(const k in vars) st.setProperty('--'+k, vars[k]);
+  }
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', getComputedStyle(document.body).getPropertyValue('--green').trim());
   refreshPalette();
   drawViz();
+  pintarTemas();
+}
+function pintarTemas(){
+  const caja=$('temas');
+  caja.innerHTML='';
+  Object.keys(TEMAS).forEach(k=>{
+    const tm=TEMAS[k];
+    const m=tm.m || [tm.vars.bg, tm.vars.brass, tm.vars.ember];
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='tema'+(k===S.theme?' active':'');
+    b.setAttribute('aria-pressed', k===S.theme?'true':'false');
+    b.innerHTML=`<div class="muestras">${m.map(c=>`<i style="background:${c}"></i>`).join('')}</div><div class="nom"></div>`;
+    b.querySelector('.nom').textContent=nombreTema(k);
+    b.onclick=()=>{ S.theme=k; save(); applyTheme(); };
+    caja.appendChild(b);
+  });
 }
 
 /* ================= UI wiring ================= */
@@ -1191,15 +1317,18 @@ a4Plus.onclick =()=>{ S.a4=Math.min(450,S.a4+1); a4Val.textContent=S.a4; save();
 tolMinus.onclick=()=>{ S.tol=Math.max(1,S.tol-1); tolVal.textContent=S.tol; save(); };
 tolPlus.onclick =()=>{ S.tol=Math.min(20,S.tol+1); tolVal.textContent=S.tol; save(); };
 tempSel.onchange=()=>{ S.temp=tempSel.value; save(); renderCongas(); renderInst(); };
-langSel.onchange=()=>{ S.lang=langSel.value; save(); applyLang(); };
-themeSel.onchange=()=>{ S.theme=themeSel.value; save(); applyTheme(); };
+const dialogo=$('ajustes');
+$('abrirAjustes').onclick=()=>{ if(dialogo.showModal) dialogo.showModal(); else dialogo.setAttribute('open',''); };
+$('cerrarAjustes').onclick=()=>{ if(dialogo.close) dialogo.close(); else dialogo.removeAttribute('open'); };
+dialogo.addEventListener('click',e=>{ if(e.target===dialogo) dialogo.close(); });
+document.querySelectorAll('#idiomas button').forEach(b=>b.onclick=()=>{ S.lang=b.dataset.idioma; save(); applyLang(); });
 sensSlider.onchange=()=>save();
 clearHist.onclick=()=>{ S.history=[]; renderHistory(); save(); };
 
 /* ================= init ================= */
 load();
 a4Val.textContent=S.a4; tolVal.textContent=S.tol;
-tempSel.value=S.temp; langSel.value=S.lang; themeSel.value=S.theme;
+tempSel.value=S.temp;
 applyTheme();
 applyLang();
 // restore last mode & view
