@@ -196,6 +196,10 @@ body.perc .conga-card{display:block}
 .nombre-afin{border:2px solid var(--green);background:var(--card);border-radius:9px;padding:6px 10px;font-size:16px;color:var(--ink);flex:1;min-width:150px;max-width:320px;outline:none}
 .chip.mia{border-style:dashed;border-color:var(--gold)}
 .chip.mia.active{border-style:solid;border-color:var(--green)}
+.eb.del circle{fill:var(--card);stroke:var(--red);stroke-width:1.5}
+.eb.del text{fill:var(--red);font-size:11px}
+#congaSvg.editando{touch-action:none}
+#congaSvg.editando .cg .outer,#congaSvg.editando .cg .inner{cursor:grab}
 .conga-tip{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6}
 
 /* ---------- instrumentos ---------- */
@@ -453,6 +457,25 @@ zh:{ajustes:'设置',cerrar:'关闭',paleta:'配色'},
 ja:{ajustes:'設定',cerrar:'閉じる',paleta:'カラーパレット'}
 };
 for (const k in I18N_AJUSTES) Object.assign(I18N[k], I18N_AJUSTES[k]);
+const I18N_MOVER = {
+es:{masTambor:'＋ Tambor',editTip2:'Arrastra un tambor para moverlo, usa ＋ Tambor para agregar otro y ✕ para quitarlo.'},
+en:{masTambor:'＋ Drum',editTip2:'Drag a drum to move it, use ＋ Drum to add another and ✕ to remove it.'},
+pt:{masTambor:'＋ Tambor',editTip2:'Arraste um tambor para movê-lo, use ＋ Tambor para adicionar outro e ✕ para removê-lo.'},
+fr:{masTambor:'＋ Tambour',editTip2:'Faites glisser un tambour pour le déplacer, ＋ Tambour pour en ajouter un et ✕ pour le retirer.'},
+de:{masTambor:'＋ Trommel',editTip2:'Trommel ziehen zum Verschieben, ＋ Trommel fügt eine hinzu, ✕ entfernt sie.'},
+ru:{masTambor:'＋ Барабан',editTip2:'Перетащите барабан, чтобы переместить; ＋ Барабан добавляет новый, ✕ удаляет.'},
+zh:{masTambor:'＋ 鼓',editTip2:'拖动鼓可移动位置，＋ 鼓 可添加，✕ 可删除。'},
+ja:{masTambor:'＋ ドラム',editTip2:'ドラムをドラッグして移動、＋ ドラムで追加、✕ で削除できます。'}
+};
+for (const k in I18N_MOVER) Object.assign(I18N[k], I18N_MOVER[k]);
+// tambores: validación y copia (posición, tamaño y notas)
+function tamboresValidos(arr){
+  return Array.isArray(arr) && arr.length>=1 && arr.length<=8 && arr.every(x=>x && isFinite(x.x) && isFinite(x.y) && isFinite(x.r) &&
+    Array.isArray(x.v) && x.v.length && x.v.every(m=>m>=24&&m<=96));
+}
+function copiaTambores(arr){
+  return arr.map(x=>({x:+x.x,y:+x.y,r:+x.r,n:x.n?String(x.n).slice(0,8):undefined,v:x.v.slice()}));
+}
 function escHtml(x){ return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const SOLFEO = {
@@ -536,6 +559,7 @@ function save(){
       sens:+sensSlider.value, congaPreset:S.congaPreset, congas,
       mode:S.mode, view:S.view, octave:S.octave, history:S.history.slice(0,40),
       inst:S.inst, variante:S.variante, afinGuit:S.afinGuit, escrita:S.escrita,
+      tambores:Object.fromEntries(Object.keys(DEFAULT_CONGAS).map(k=>[k,copiaTambores(CONGA_PRESETS[k].drums)])),
       misCongas:Object.entries(CONGA_PRESETS).filter(([k,p])=>p.custom).map(([k,p])=>({
         k, titulo:p.labelKey, drums:p.drums.map(d=>({x:d.x,y:d.y,r:d.r,n:d.n,v:d.v.slice()})) }))
     }));
@@ -551,6 +575,9 @@ function load(){
     if(TEMPERAMENTS[d.temp]) S.temp=d.temp;
     if(d.tol>=1&&d.tol<=20) S.tol=d.tol;
     if(d.sens>=0&&d.sens<=100) sensSlider.value=d.sens;
+    if(d.tambores) for(const k in DEFAULT_CONGAS){
+      if(tamboresValidos(d.tambores[k])) CONGA_PRESETS[k].drums=copiaTambores(d.tambores[k]);
+    }
     // afinaciones propias guardadas con título
     if(Array.isArray(d.misCongas)) d.misCongas.forEach(c=>{
       if(!c || typeof c.k!=='string' || !/^mia_\d+$/.test(c.k) || !Array.isArray(c.drums) || !c.drums.length) return;
@@ -1023,7 +1050,7 @@ const CONGA_PRESETS = {
   ]}
 };
 const DEFAULT_CONGAS = JSON.parse(JSON.stringify(
-  Object.fromEntries(Object.entries(CONGA_PRESETS).map(([k,p])=>[k,p.drums.map(d=>d.v.slice())]))));
+  Object.fromEntries(Object.entries(CONGA_PRESETS).map(([k,p])=>[k,p.drums]))));
 const congaChipsEl=$('congaChips'), congaSvg=$('congaSvg'), congaTip=$('congaTip');
 
 function renderCongas(){
@@ -1033,6 +1060,7 @@ function renderCongas(){
   document.getElementById('congaTools').innerHTML=
     `<button class="chip tool ${S.congaEdit?'active':''}" id="editChip">${T().edit}</button>
      <button class="chip tool" id="resetChip">${T().reset}</button>
+     ${S.congaEdit&&p.drums.length<8?`<button class="chip tool" id="masTambor">${T().masTambor}</button>`:''}
      <button class="chip tool ${S.congaNombrando?'active':''}" id="guardarChip">${T().guardarComo}</button>`
     +(p.custom?`<button class="chip tool" id="borrarChip">${T().borrar}</button>`:'')
     +(S.congaNombrando?`<input class="nombre-afin" id="nombreAfin" maxlength="30" placeholder="${escHtml(T().nombreAfin)}" aria-label="${escHtml(T().nombreAfin)}">
@@ -1062,16 +1090,15 @@ function renderCongas(){
   });
   $('editChip').onclick=()=>{ S.congaEdit=!S.congaEdit; renderCongas(); };
   $('resetChip').onclick=()=>{
-    for(const k in DEFAULT_CONGAS)
-      CONGA_PRESETS[k].drums.forEach((d,i)=>{ d.v=DEFAULT_CONGAS[k][i].slice(); d.sel=0; });
+    for(const k in DEFAULT_CONGAS) CONGA_PRESETS[k].drums=copiaTambores(DEFAULT_CONGAS[k]);
     save(); renderCongas();
   };
-  congaTip.textContent=(S.congaEdit?T().editTip+' ':'')+(p.custom?T().tipMia:T()[p.tipKey]);
+  congaTip.textContent=(S.congaEdit?T().editTip+' '+T().editTip2+' ':'')+(p.custom?T().tipMia:T()[p.tipKey]);
 
   congaSvg.innerHTML=p.drums.map((d,i)=>{
     d.sel=Math.min(d.sel||0, d.v.length-1);
     const m=d.v[d.sel];
-    let g=`<g class="cg" data-i="${i}">
+    let g=`<g class="tb"><g class="cg" data-i="${i}">
       <circle class="outer" cx="${d.x}" cy="${d.y}" r="${d.r}"/>
       <circle class="inner" cx="${d.x}" cy="${d.y}" r="${d.r-7}"/>
       <text class="nname" x="${d.x}" y="${d.y+1}" text-anchor="middle">${noteLabel(m)}</text>
@@ -1086,12 +1113,19 @@ function renderCongas(){
       <g class="eb" data-i="${i}" data-dir="1">
         <circle cx="${d.x+19}" cy="${ey}" r="12"/>
         <text x="${d.x+19}" y="${ey+5}" text-anchor="middle">+</text></g>`;
+      if(p.drums.length>1){
+        const qx=d.x+d.r*0.74, qy=d.y-d.r*0.74;
+        g+=`<g class="eb del" data-i="${i}"><circle cx="${qx}" cy="${qy}" r="11"/>
+          <text x="${qx}" y="${qy+4}" text-anchor="middle">✕</text></g>`;
+      }
     }
-    return g;
+    return g+'</g>';
   }).join('');
 
+  congaSvg.classList.toggle('editando',S.congaEdit);
   congaSvg.querySelectorAll('.cg').forEach(g=>{
     g.onclick=()=>{
+      if(arrastroTambor) return;
       const d=p.drums[+g.dataset.i];
       if(d.v.length>1 && g.classList.contains('playing')) d.sel=(d.sel+1)%d.v.length;
       const m=d.v[d.sel];
@@ -1100,7 +1134,7 @@ function renderCongas(){
       playTone(m,g);
     };
   });
-  congaSvg.querySelectorAll('.eb').forEach(g=>{
+  congaSvg.querySelectorAll('.eb[data-dir]').forEach(g=>{
     g.onclick=(e)=>{
       e.stopPropagation();
       const d=p.drums[+g.dataset.i];
@@ -1109,7 +1143,54 @@ function renderCongas(){
       playTone(nm, congaSvg.querySelectorAll('.cg')[+g.dataset.i]);
     };
   });
+  if(!S.congaEdit) return;
+  // ---- modo edición: quitar, agregar y mover tambores ----
+  congaSvg.querySelectorAll('.eb.del').forEach(g=>{
+    g.onclick=e=>{ e.stopPropagation(); stopTone(); p.drums.splice(+g.dataset.i,1); save(); renderCongas(); };
+  });
+  const mas=$('masTambor');
+  if(mas) mas.onclick=()=>{
+    // busca un hueco libre; si no hay, lo pone al centro
+    const r=38; let lugar={x:200,y:130}, mejor=-Infinity;
+    for(let y=r+4; y<=285-r-32; y+=14) for(let x=r+4; x<=396-r; x+=14){
+      // cuenta también los botones − / + que van debajo de cada tambor
+      const libre=Math.min(...p.drums.map(d=>Math.min(
+        Math.hypot(d.x-x,d.y-y)-d.r-r,
+        Math.hypot(d.x-x,d.y+d.r+17-y)-30-r,
+        Math.hypot(d.x-x,d.y-(y+r+17))-d.r-30)));
+      const centro=-Math.hypot(x-200,y-130)/1000;
+      const nota=Math.min(libre,6)+centro;   // basta con un hueco holgado; entre iguales, el más centrado
+      if(nota>mejor){ mejor=nota; lugar={x,y}; }
+    }
+    p.drums.push({x:lugar.x,y:lugar.y,r,v:[50]});
+    save(); renderCongas();
+  };
+  const aSvg=e=>{ const q=congaSvg.createSVGPoint(); q.x=e.clientX; q.y=e.clientY;
+    return q.matrixTransform(congaSvg.getScreenCTM().inverse()); };
+  const entre=(v,a,b)=>Math.max(a,Math.min(b,v));
+  congaSvg.querySelectorAll('.cg').forEach(g=>{
+    const d=p.drums[+g.dataset.i], grupo=g.parentNode;
+    let ini=null, movio=false, nx=d.x, ny=d.y;
+    g.onpointerdown=e=>{ ini=aSvg(e); movio=false; try{ g.setPointerCapture(e.pointerId); }catch(_){} };
+    g.onpointermove=e=>{
+      if(!ini) return;
+      const a=aSvg(e), dx=a.x-ini.x, dy=a.y-ini.y;
+      if(!movio && Math.hypot(dx,dy)<4) return;
+      movio=true;
+      nx=entre(d.x+dx, d.r+2, 398-d.r); ny=entre(d.y+dy, d.r+2, 285-d.r-30);
+      grupo.setAttribute('transform',`translate(${nx-d.x} ${ny-d.y})`);
+    };
+    const soltar=()=>{
+      if(!ini) return; ini=null;
+      if(!movio) return;
+      d.x=Math.round(nx); d.y=Math.round(ny);
+      arrastroTambor=true; setTimeout(()=>{ arrastroTambor=false; },60);
+      save(); renderCongas();
+    };
+    g.onpointerup=soltar; g.onpointercancel=soltar;
+  });
 }
+let arrastroTambor=false;
 function congaMatch(noteKey){
   const p=CONGA_PRESETS[S.congaPreset];
   congaSvg.querySelectorAll('.cg').forEach(g=>{
