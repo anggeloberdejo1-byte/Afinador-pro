@@ -1,4 +1,4 @@
-const CACHE = 'afinador-pro-v1';
+const CACHE = 'afinador-pro-v2';
 const FILES = ['./', './index.html', './apple-touch-icon.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

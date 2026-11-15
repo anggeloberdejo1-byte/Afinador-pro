@@ -70,7 +70,7 @@ header{display:flex;align-items:center;justify-content:space-between;flex-wrap:w
 .brand img.logo{height:48px;width:auto;filter:drop-shadow(0 1px 3px rgba(0,0,0,.25))}
 .brand h1{font-size:20px;letter-spacing:.06em;color:var(--green-ink)}
 .brand .tag{font-size:11px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;display:block}
-.modes{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
+.modes{max-width:100%;display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
 .modes button{border:0;background:transparent;padding:8px 20px;border-radius:999px;cursor:pointer;font-size:13px;color:var(--muted);letter-spacing:.04em;transition:all .18s}
 .modes button.active{background:var(--green);color:#fdfbf0}
 
@@ -173,6 +173,19 @@ body.perc .conga-card{display:block}
 .eb text{font-size:14px;font-weight:700;fill:var(--ink);pointer-events:none}
 .conga-tip{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6}
 
+/* ---------- instrumentos ---------- */
+.inst-card{display:none}
+body.inst .inst-card{display:block}
+.notas-inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:8px;margin-top:4px}
+.nota-inst{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 4px;border-radius:12px;border-width:2px}
+.nota-inst .num{font-size:10px;color:var(--gold);font-weight:700}
+.nota-inst b{font-size:18px;color:var(--green-ink)}
+.nota-inst small{font-size:10px;color:var(--muted);font-weight:400}
+.nota-inst.cerca{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft)}
+.nota-inst.match{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
+.nota-inst.match b{color:var(--green)}
+.nota-inst.playing .num,.nota-inst.playing b,.nota-inst.playing small{color:#fff}
+
 .perc-note{display:none;font-size:12px;color:var(--muted);background:var(--card2);border:1px dashed var(--line);border-radius:9px;padding:10px 14px;margin-bottom:14px;line-height:1.5}
 body.perc .perc-note{display:block}
 
@@ -194,6 +207,7 @@ footer .badge{height:150px;width:auto;display:block;margin:0 auto 10px;filter:dr
 footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:.1em;margin-bottom:4px}
 
 @media (max-width:560px){
+  .modes button{padding:8px 11px;font-size:12px}
   .note-name{font-size:64px}
   .viz{height:190px}
   .card.main .note-name{font-size:80px}
@@ -216,6 +230,7 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
   <div class="modes">
     <button id="tabChrom" class="active">Cromático</button>
     <button id="tabPerc">Percusión</button>
+    <button id="tabInst">Instrumentos</button>
   </div>
 </header>
 
@@ -252,6 +267,16 @@ footer .by{font-size:14px;font-weight:700;color:var(--green-ink);letter-spacing:
       <input type="range" id="sensSlider" min="0" max="100" value="55">
     </div>
   </div>
+</div>
+
+<!-- ============ INSTRUMENTOS ============ -->
+<div class="card inst-card">
+  <h2><span id="instTitle"></span> <span class="hint" id="instHint"></span></h2>
+  <div class="preset-row" id="instChips"></div>
+  <div class="preset-row" id="instVar"></div>
+  <div class="preset-row" id="instAfin"></div>
+  <div class="notas-inst" id="instNotas"></div>
+  <div class="conga-tip" id="instTip"></div>
 </div>
 
 <!-- ============ SETTINGS ============ -->
@@ -356,6 +381,17 @@ zh:{pDuo:'二鼓：康加鼓 D，通巴多拉 A/B。',pTrio:'三鼓：B/B♭（�
 ja:{pDuo:'デュオ：コンガは D、トゥンバドーラは A/B。',pTrio:'トリオ：B/B♭（トゥンバドーラ）、D（コンガ）、G（トゥンバドーラ）。',pCongB:'別の5台セット：上に B/B♭・D・G、下に F/G・E/F。',pBongo:'ボンゴ：低音（hembra）は C、高音（macho）は G。✎ 編集で調整可能。'}
 };
 for (const k in I18N_EXTRA) Object.assign(I18N[k], I18N_EXTRA[k]);
+const I18N_INST = {
+es:{inst:'Instrumentos',instTitle:'Afinar por instrumento',instHint:'toca una cuerda o nota para oír su tono',iGuit:'Guitarra',iBajo:'Bajo',iTromp:'Trompeta',iSax:'Sax',iTromb:'Trombón',iFlauta:'Flauta traversa',vAcu:'Acústica',vElec:'Eléctrica',vCuerdas:'cuerdas',vSib:'en Si♭',vDo:'en Do',vSop:'Soprano',vAlto:'Alto',vTenor:'Tenor',vBari:'Barítono',aEst:'Estándar',aDrop:'Drop D',aMedio:'½ tono abajo',escrita:'Nota escrita',real:'Tono real',tipCuerda:'Toca una cuerda al aire y déjala sonar: se marca la cuerda más cercana y se pone verde cuando está afinada.',tipBajo:'Rango grave extendido para llegar al SI grave; acerca el teléfono al amplificador o al instrumento.',tipTransp:'Instrumento transpositor: con «Nota escrita» ves la nota de tu partitura; con «Tono real» ves la nota de concierto. Calienta el instrumento y toca una nota larga.',tipDo:'Instrumento en Do: la nota escrita es la misma que suena. Calienta el instrumento y toca una nota larga y estable.'},
+en:{inst:'Instruments',instTitle:'Tune by instrument',instHint:'tap a string or note to hear its tone',iGuit:'Guitar',iBajo:'Bass',iTromp:'Trumpet',iSax:'Sax',iTromb:'Trombone',iFlauta:'Flute',vAcu:'Acoustic',vElec:'Electric',vCuerdas:'strings',vSib:'in B♭',vDo:'in C',vSop:'Soprano',vAlto:'Alto',vTenor:'Tenor',vBari:'Baritone',aEst:'Standard',aDrop:'Drop D',aMedio:'½ step down',escrita:'Written note',real:'Concert pitch',tipCuerda:'Play an open string and let it ring: the closest string is marked and turns green when in tune.',tipBajo:'Extended low range to reach the low B; hold the phone close to the amp or the instrument.',tipTransp:'Transposing instrument: "Written note" shows the note on your sheet music; "Concert pitch" shows the sounding note. Warm up the instrument and play a long note.',tipDo:'Instrument in C: the written note is the sounding note. Warm up the instrument and play a long, steady note.'},
+pt:{inst:'Instrumentos',instTitle:'Afinar por instrumento',instHint:'toque uma corda ou nota para ouvir seu tom',iGuit:'Violão / Guitarra',iBajo:'Baixo',iTromp:'Trompete',iSax:'Sax',iTromb:'Trombone',iFlauta:'Flauta transversal',vAcu:'Acústico',vElec:'Elétrica',vCuerdas:'cordas',vSib:'em Si♭',vDo:'em Dó',vSop:'Soprano',vAlto:'Alto',vTenor:'Tenor',vBari:'Barítono',aEst:'Padrão',aDrop:'Drop D',aMedio:'½ tom abaixo',escrita:'Nota escrita',real:'Som real',tipCuerda:'Toque uma corda solta e deixe soar: a corda mais próxima é marcada e fica verde quando está afinada.',tipBajo:'Faixa grave estendida para alcançar o SI grave; aproxime o telefone do amplificador ou do instrumento.',tipTransp:'Instrumento transpositor: «Nota escrita» mostra a nota da partitura; «Som real» mostra a nota de concerto. Aqueça o instrumento e toque uma nota longa.',tipDo:'Instrumento em Dó: a nota escrita é a mesma que soa. Aqueça o instrumento e toque uma nota longa e estável.'},
+fr:{inst:'Instruments',instTitle:'Accorder par instrument',instHint:'touchez une corde ou une note pour l’entendre',iGuit:'Guitare',iBajo:'Basse',iTromp:'Trompette',iSax:'Sax',iTromb:'Trombone',iFlauta:'Flûte traversière',vAcu:'Acoustique',vElec:'Électrique',vCuerdas:'cordes',vSib:'en Si♭',vDo:'en Do',vSop:'Soprano',vAlto:'Alto',vTenor:'Ténor',vBari:'Baryton',aEst:'Standard',aDrop:'Drop D',aMedio:'½ ton plus bas',escrita:'Note écrite',real:'Son réel',tipCuerda:'Jouez une corde à vide et laissez-la sonner : la corde la plus proche est repérée et devient verte quand elle est accordée.',tipBajo:'Plage grave étendue pour atteindre le SI grave ; approchez le téléphone de l’ampli ou de l’instrument.',tipTransp:'Instrument transpositeur : « Note écrite » montre la note de la partition ; « Son réel » montre la note de concert. Chauffez l’instrument et jouez une note longue.',tipDo:'Instrument en Do : la note écrite est celle qui sonne. Chauffez l’instrument et jouez une note longue et stable.'},
+de:{inst:'Instrumente',instTitle:'Nach Instrument stimmen',instHint:'tippe eine Saite oder Note, um sie zu hören',iGuit:'Gitarre',iBajo:'Bass',iTromp:'Trompete',iSax:'Sax',iTromb:'Posaune',iFlauta:'Querflöte',vAcu:'Akustik',vElec:'E-Gitarre',vCuerdas:'Saiten',vSib:'in B',vDo:'in C',vSop:'Sopran',vAlto:'Alt',vTenor:'Tenor',vBari:'Bariton',aEst:'Standard',aDrop:'Drop D',aMedio:'½ Ton tiefer',escrita:'Notiert',real:'Klingend',tipCuerda:'Spiele eine leere Saite und lass sie klingen: die nächste Saite wird markiert und wird grün, wenn sie gestimmt ist.',tipBajo:'Erweiterter Tiefbereich für die tiefe H-Saite; halte das Handy nah an den Verstärker oder das Instrument.',tipTransp:'Transponierendes Instrument: „Notiert" zeigt die Note aus deinen Noten, „Klingend" den klingenden Ton. Instrument warmspielen und einen langen Ton spielen.',tipDo:'Instrument in C: notierter und klingender Ton sind gleich. Instrument warmspielen und einen langen, ruhigen Ton spielen.'},
+ru:{inst:'Инструменты',instTitle:'Настройка по инструменту',instHint:'нажмите на струну или ноту, чтобы услышать её',iGuit:'Гитара',iBajo:'Бас',iTromp:'Труба',iSax:'Саксофон',iTromb:'Тромбон',iFlauta:'Флейта',vAcu:'Акустическая',vElec:'Электро',vCuerdas:'струн',vSib:'строй Си♭',vDo:'строй До',vSop:'Сопрано',vAlto:'Альт',vTenor:'Тенор',vBari:'Баритон',aEst:'Стандарт',aDrop:'Drop D',aMedio:'на ½ тона ниже',escrita:'По нотам',real:'Реальный звук',tipCuerda:'Сыграйте открытую струну и дайте ей звучать: ближайшая струна отмечается и становится зелёной, когда настроена.',tipBajo:'Расширенный низкий диапазон для нижней струны СИ; поднесите телефон к усилителю или инструменту.',tipTransp:'Транспонирующий инструмент: «По нотам» показывает ноту из партии, «Реальный звук» — звучащую ноту. Разогрейте инструмент и сыграйте длинную ноту.',tipDo:'Инструмент в строе До: написанная нота совпадает со звучащей. Разогрейте инструмент и сыграйте длинную ровную ноту.'},
+zh:{inst:'乐器',instTitle:'按乐器调音',instHint:'点击琴弦或音符听其音高',iGuit:'吉他',iBajo:'贝斯',iTromp:'小号',iSax:'萨克斯',iTromb:'长号',iFlauta:'长笛',vAcu:'木吉他',vElec:'电吉他',vCuerdas:'弦',vSib:'降B调',vDo:'C调',vSop:'高音',vAlto:'中音',vTenor:'次中音',vBari:'上低音',aEst:'标准',aDrop:'Drop D',aMedio:'降半音',escrita:'记谱音',real:'实际音高',tipCuerda:'弹奏空弦并让它持续发声：最接近的琴弦会被标记，调准后变为绿色。',tipBajo:'扩展低频范围以识别低音 B 弦；请将手机靠近音箱或乐器。',tipTransp:'移调乐器：“记谱音”显示乐谱上的音，“实际音高”显示实际发出的音。先热身乐器，再吹一个长音。',tipDo:'C 调乐器：记谱音与实际音高相同。先热身乐器，再吹一个平稳的长音。'},
+ja:{inst:'楽器',instTitle:'楽器別チューニング',instHint:'弦や音をタップして音を聴く',iGuit:'ギター',iBajo:'ベース',iTromp:'トランペット',iSax:'サックス',iTromb:'トロンボーン',iFlauta:'フルート',vAcu:'アコースティック',vElec:'エレキ',vCuerdas:'弦',vSib:'B♭管',vDo:'C管',vSop:'ソプラノ',vAlto:'アルト',vTenor:'テナー',vBari:'バリトン',aEst:'スタンダード',aDrop:'ドロップD',aMedio:'半音下げ',escrita:'記譜音',real:'実音',tipCuerda:'開放弦を弾いて響かせてください。最も近い弦が表示され、合うと緑になります。',tipBajo:'ローB弦まで届くよう低音域を拡張。スマホをアンプや楽器に近づけてください。',tipTransp:'移調楽器：「記譜音」は楽譜の音、「実音」は実際に鳴る音を表示します。楽器を温めてからロングトーンを吹いてください。',tipDo:'C管の楽器：記譜音と実音は同じです。楽器を温めてから安定したロングトーンを吹いてください。'}
+};
+for (const k in I18N_INST) Object.assign(I18N[k], I18N_INST[k]);
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const SOLFEO = {
   es:['DO','DO#','RE','RE#','MI','FA','FA#','SOL','SOL#','LA','LA#','SI'],
@@ -365,6 +401,18 @@ const SOLFEO = {
   de:['C','C#','D','D#','E','F','F#','G','G#','A','B','H']
 };
 function T(){ return I18N[S.lang] || I18N.es; }
+function modoTxt(){ return S.mode==='perc'?T().perc : S.mode==='inst'?T().inst : T().chrom; }
+// Nombres con bemoles habituales (MI♭, LA♭, SI♭) para instrumentos
+const BEMOLES={3:4,8:9,10:11};
+function etiquetaPc(pc){
+  const arr = SOLFEO[S.lang] || NOTE_NAMES;
+  if(S.lang!=='de' && BEMOLES[pc]!==undefined) return arr[BEMOLES[pc]]+'♭';
+  return arr[pc];
+}
+function etiquetaNota(midi){
+  const pc=((midi%12)+12)%12;
+  return etiquetaPc(pc)+(Math.floor(midi/12)-1);
+}
 function noteLabel(midi){
   const pc=((midi%12)+12)%12, oct=Math.floor(midi/12)-1;
   const arr = SOLFEO[S.lang] || NOTE_NAMES;
@@ -381,8 +429,41 @@ const S = {
   mode:'chrom', a4:440, temp:'equal', tol:5, view:'needle',
   listening:false, octave:4, cents:null, lastGood:0, held:null,
   stableCount:0, stableKey:null, recordedKey:null, history:[],
-  lang:'es', theme:'crema', congaPreset:'conguero', congaEdit:false
+  lang:'es', theme:'crema', congaPreset:'conguero', congaEdit:false,
+  inst:'guitarra', variante:{guitarra:'acustica',bajo:'4',trompeta:'sib',sax:'alto'},
+  afinGuit:'estandar', escrita:true
 };
+/* ================= instrumentos ================= */
+// Notas en MIDI de concierto. transp = semitonos que la nota escrita queda por encima del tono real.
+const INSTRUMENTOS = {
+  guitarra:{ tipo:'cuerda', nombre:'iGuit', variantes:['acustica','electrica'],
+    afinaciones:{ estandar:[40,45,50,55,59,64], dropD:[38,45,50,55,59,64], medio:[39,44,49,54,58,63] } },
+  bajo:{ tipo:'cuerda', nombre:'iBajo', variantes:['4','5','6'],
+    cuerdas:{ '4':[28,33,38,43], '5':[23,28,33,38,43], '6':[23,28,33,38,43,48] } },
+  trompeta:{ tipo:'viento', nombre:'iTromp', variantes:['sib','do'],
+    transp:{sib:2,do:0}, notas:{sib:[70,69,65],do:[70,69,65]} },
+  sax:{ tipo:'viento', nombre:'iSax', variantes:['soprano','alto','tenor','baritono'],
+    transp:{soprano:2,alto:9,tenor:14,baritono:21},
+    notas:{soprano:[70,69],alto:[70,69],tenor:[58,57],baritono:[46,45,57]} },
+  trombon:{ tipo:'viento', nombre:'iTromb', transp:0, notas:[58,53,57] },
+  flauta:{ tipo:'viento', nombre:'iFlauta', transp:0, notas:[69,70,81] }
+};
+const AFIN_GUIT = { estandar:'aEst', dropD:'aDrop', medio:'aMedio' };
+function instActual(){ return INSTRUMENTOS[S.inst]; }
+function varActual(){ return S.variante[S.inst]; }
+function transpInst(){
+  const i=instActual();
+  if(i.tipo!=='viento') return 0;
+  return typeof i.transp==='object' ? i.transp[varActual()] : i.transp;
+}
+function notasInst(){
+  const i=instActual();
+  if(S.inst==='guitarra') return i.afinaciones[S.afinGuit];
+  if(S.inst==='bajo') return i.cuerdas[varActual()];
+  return Array.isArray(i.notas) ? i.notas : i.notas[varActual()];
+}
+// semitonos a sumar a la nota de concierto para mostrarla en pantalla
+function transpPantalla(){ return (S.mode==='inst' && S.escrita) ? transpInst() : 0; }
 const LS_KEY='afinadorPro.v1';
 function save(){
   try{
@@ -391,7 +472,8 @@ function save(){
     localStorage.setItem(LS_KEY, JSON.stringify({
       lang:S.lang, theme:S.theme, a4:S.a4, temp:S.temp, tol:S.tol,
       sens:+sensSlider.value, congaPreset:S.congaPreset, congas,
-      mode:S.mode, view:S.view, octave:S.octave, history:S.history.slice(0,40)
+      mode:S.mode, view:S.view, octave:S.octave, history:S.history.slice(0,40),
+      inst:S.inst, variante:S.variante, afinGuit:S.afinGuit, escrita:S.escrita
     }));
   }catch(e){}
 }
@@ -411,15 +493,31 @@ function load(){
         if(Array.isArray(d.congas[k][i]) && d.congas[k][i].every(m=>m>=24&&m<=96)) dr.v=d.congas[k][i];
       });
     }
-    if(d.mode==='perc'||d.mode==='chrom') S.mode=d.mode;
+    if(d.mode==='perc'||d.mode==='chrom'||d.mode==='inst') S.mode=d.mode;
+    if(INSTRUMENTOS[d.inst]) S.inst=d.inst;
+    if(d.variante) for(const k in S.variante){
+      if(INSTRUMENTOS[k].variantes.includes(d.variante[k])) S.variante[k]=d.variante[k];
+    }
+    if(AFIN_GUIT[d.afinGuit]) S.afinGuit=d.afinGuit;
+    if(typeof d.escrita==='boolean') S.escrita=d.escrita;
     if(['needle','strobe','graph'].includes(d.view)) S.view=d.view;
     if(d.octave>=1&&d.octave<=6) S.octave=d.octave;
     if(Array.isArray(d.history)) S.history=d.history.slice(0,40);
   }catch(e){}
 }
-const CFG = () => S.mode==='perc'
-  ? { fmin:40, fmax:600,  holdMs:2500, fft:8192 }
-  : { fmin:50, fmax:2200, holdMs:700,  fft:4096 };
+const CFG = () => {
+  if(S.mode==='perc') return { fmin:40, fmax:600,  holdMs:2500, fft:8192 };
+  if(S.mode==='inst'){
+    // el bajo de 5 y 6 cuerdas baja hasta SI0 (30.9 Hz)
+    if(S.inst==='bajo')     return { fmin:27, fmax:520,  holdMs:1500, fft:8192 };
+    if(S.inst==='guitarra') return { fmin:60, fmax:1400, holdMs:1200, fft:4096 };
+  }
+  return { fmin:50, fmax:2200, holdMs:700,  fft:4096 };
+};
+function aplicarCFG(){
+  if(analyser && analyser.fftSize!==CFG().fft){ analyser.fftSize=CFG().fft; buf=new Float32Array(analyser.fftSize); }
+  S.held=null; S.cents=null; pitchWindow.length=0;
+}
 
 /* ================= audio ================= */
 let audioCtx=null, analyser=null, micStream=null, rafId=null, buf=null;
@@ -592,15 +690,24 @@ const noteName=$('noteName'), noteOct=$('noteOct'), centsBig=$('centsBig'), cent
 
 function updateDisplay(r, live){
   const inTune=Math.abs(r.cents)<=S.tol;
-  noteName.textContent=r.name;
+  const tp=transpPantalla();
+  if(S.mode==='inst'){
+    const mm=r.midi+tp;
+    noteName.textContent=etiquetaPc(((mm%12)+12)%12);
+    noteOct.textContent=Math.floor(mm/12)-1;
+  } else {
+    noteName.textContent=r.name;
+    noteOct.textContent=r.oct;
+  }
   noteName.classList.toggle('intune',inTune);
-  noteOct.textContent=r.oct;
   centsVal.textContent=`${r.cents>0?'+':''}${r.cents.toFixed(1)} ¢`;
   centsBig.classList.toggle('intune',inTune);
-  freqRow.innerHTML=`<b>${r.freq.toFixed(2)} Hz</b> · ${T().target} ${r.target.toFixed(2)} Hz`;
+  freqRow.innerHTML=`<b>${r.freq.toFixed(2)} Hz</b> · ${T().target} ${r.target.toFixed(2)} Hz`
+    +(tp?` · ${T().real}: <b>${etiquetaNota(r.midi)}</b>`:'');
   dot.classList.toggle('on',inTune);
   statusTxt.textContent = inTune ? T().inTune : (r.cents<0?T().low:T().high)+(live?'':T().held);
   if(S.mode==='perc') congaMatch(r.name+r.oct);
+  if(S.mode==='inst') instMatch(r);
 }
 function clearDisplay(keepListening){
   noteName.textContent='—'; noteName.classList.remove('intune');
@@ -608,6 +715,7 @@ function clearDisplay(keepListening){
   freqRow.innerHTML='&nbsp;'; dot.classList.remove('on');
   if(keepListening) statusTxt.textContent=T().listening;
   congaMatch(null);
+  instMatch(null);
 }
 
 /* ================= theme palette ================= */
@@ -742,7 +850,7 @@ function stopTone(){
   if(playingBtn){ playingBtn.classList.remove('playing'); playingBtn=null; }
   playingKey=null;
 }
-async function playTone(midi, btn){
+async function playTone(midi, btn, cuerda){
   const key='m'+midi;
   if(playingKey===key){ stopTone(); return; }
   stopTone();
@@ -750,14 +858,23 @@ async function playTone(midi, btn){
   await audioCtx.resume();
   toneOsc=audioCtx.createOscillator();
   toneGain=audioCtx.createGain();
-  toneOsc.type='sine';
   toneOsc.frequency.value=midiFreq(midi);
   toneGain.gain.setValueAtTime(0,audioCtx.currentTime);
-  toneGain.gain.linearRampToValueAtTime(0.28,audioCtx.currentTime+0.02);
-  toneOsc.connect(toneGain).connect(audioCtx.destination);
+  if(cuerda){
+    // timbre con armónicos: las notas graves del bajo se oyen también en el parlante del celular
+    const filtro=audioCtx.createBiquadFilter();
+    filtro.type='lowpass'; filtro.frequency.value=1400; filtro.Q.value=0.7;
+    toneOsc.type='sawtooth';
+    toneGain.gain.linearRampToValueAtTime(0.2,audioCtx.currentTime+0.02);
+    toneOsc.connect(filtro).connect(toneGain).connect(audioCtx.destination);
+  } else {
+    toneOsc.type='sine';
+    toneGain.gain.linearRampToValueAtTime(0.28,audioCtx.currentTime+0.02);
+    toneOsc.connect(toneGain).connect(audioCtx.destination);
+  }
   toneOsc.start();
   playingBtn=btn; playingKey=key; btn.classList.add('playing');
-  toneTimeout=setTimeout(stopTone,2000);
+  toneTimeout=setTimeout(stopTone,cuerda?4000:2000);
 }
 function renderTones(){
   const octs=S.mode==='perc'?[1,2,3,4]:[2,3,4,5,6];
@@ -889,12 +1006,80 @@ function congaMatch(noteKey){
   });
 }
 
+/* ================= tarjeta de instrumentos ================= */
+const instChipsEl=$('instChips'), instVarEl=$('instVar'), instAfinEl=$('instAfin'),
+      instNotasEl=$('instNotas'), instTipEl=$('instTip');
+function txtVariante(v){
+  const t=T();
+  return ({acustica:t.vAcu, electrica:t.vElec, '4':'4 '+t.vCuerdas, '5':'5 '+t.vCuerdas, '6':'6 '+t.vCuerdas,
+    sib:t.vSib, do:t.vDo, soprano:t.vSop, alto:t.vAlto, tenor:t.vTenor, baritono:t.vBari})[v];
+}
+function renderInst(){
+  const t=T(), ins=instActual(), tp=transpInst(), esCuerda=ins.tipo==='cuerda';
+  instChipsEl.innerHTML=Object.entries(INSTRUMENTOS).map(([k,v])=>
+    `<button class="chip ${k===S.inst?'active':''}" data-k="${k}">${t[v.nombre]}</button>`).join('');
+  instChipsEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    S.inst=b.dataset.k; stopTone(); aplicarCFG(); save(); renderInst();
+  });
+  instVarEl.innerHTML=(ins.variantes||[]).map(v=>
+    `<button class="chip ${v===varActual()?'active':''}" data-v="${v}">${txtVariante(v)}</button>`).join('');
+  instVarEl.style.display=ins.variantes?'':'none';
+  instVarEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    S.variante[S.inst]=b.dataset.v; stopTone(); save(); renderInst();
+  });
+  // tercera fila: afinaciones de guitarra, o nota escrita / tono real en transpositores
+  let fila='';
+  if(S.inst==='guitarra') fila=Object.entries(AFIN_GUIT).map(([k,v])=>
+    `<button class="chip tool ${k===S.afinGuit?'active':''}" data-a="${k}">${t[v]}</button>`).join('');
+  else if(tp) fila=`<button class="chip tool ${S.escrita?'active':''}" data-e="1">${t.escrita}</button>
+    <button class="chip tool ${S.escrita?'':'active'}" data-e="0">${t.real}</button>`;
+  instAfinEl.innerHTML=fila;
+  instAfinEl.style.display=fila?'':'none';
+  instAfinEl.querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>{
+    S.afinGuit=b.dataset.a; stopTone(); save(); renderInst();
+  });
+  instAfinEl.querySelectorAll('button[data-e]').forEach(b=>b.onclick=()=>{
+    S.escrita=b.dataset.e==='1'; save(); renderInst();
+    if(S.held) updateDisplay(S.held,false);
+  });
+  const notas=notasInst();
+  instNotasEl.innerHTML=notas.map((m,i)=>{
+    const hz=midiFreq(m).toFixed(1)+' Hz';
+    if(esCuerda) return `<button class="chip nota-inst" data-midi="${m}">
+      <span class="num">${notas.length-i}</span><b>${etiquetaNota(m)}</b><small>${hz}</small></button>`;
+    const mostrar=S.escrita?m+tp:m;
+    return `<button class="chip nota-inst" data-midi="${m}">
+      <b>${etiquetaNota(mostrar)}</b><small>${tp&&S.escrita?t.real+' '+etiquetaNota(m):hz}</small></button>`;
+  }).join('');
+  instNotasEl.querySelectorAll('button').forEach(b=>b.onclick=()=>playTone(+b.dataset.midi,b,esCuerda));
+  instTipEl.textContent = esCuerda ? t.tipCuerda+(S.inst==='bajo'?' '+t.tipBajo:'') : (tp?t.tipTransp:t.tipDo);
+  $('instTitle').textContent=t.instTitle; $('instHint').textContent=t.instHint;
+}
+// marca la cuerda (o nota de afinación) más cercana a lo que suena
+function instMatch(r){
+  const botones=instNotasEl.querySelectorAll('.nota-inst');
+  let mejor=null, dist=99;
+  if(r && S.mode==='inst'){
+    const real=r.midi+r.cents/100;
+    const tope=instActual().tipo==='cuerda'?2.6:0.6;
+    botones.forEach(b=>{
+      const d=Math.abs(real- +b.dataset.midi);
+      if(d<dist && d<=tope){ dist=d; mejor=b; }
+    });
+  }
+  botones.forEach(b=>{
+    const afinada = b===mejor && +b.dataset.midi===r.midi && Math.abs(r.cents)<=S.tol;
+    b.classList.toggle('match',afinada);
+    b.classList.toggle('cerca',b===mejor && !afinada);
+  });
+}
+
 /* ================= i18n apply ================= */
 function applyLang(){
   const t=T();
   document.documentElement.lang=S.lang;
-  tabChrom.textContent=t.chrom; tabPerc.textContent=t.perc;
-  $('modeTag').textContent=S.mode==='perc'?t.perc:t.chrom;
+  tabChrom.textContent=t.chrom; tabPerc.textContent=t.perc; tabInst.textContent=t.inst;
+  $('modeTag').textContent=modoTxt();
   $('percNote').innerHTML=t.percNote;
   $('vtNeedle').textContent=t.needle; $('vtStrobe').textContent=t.strobe; $('vtGraph').textContent=t.graph;
   listenBtn.textContent=S.listening?t.stopBtn:t.listen;
@@ -911,7 +1096,7 @@ function applyLang(){
   $('congaTitle').textContent=t.conga; $('congaHint').textContent=t.congaHint;
   $('histTitle').textContent=t.hist; $('clearHist').textContent=t.clear; $('histEmpty').textContent=t.histEmpty;
   $('footTag').textContent=t.footTag;
-  renderTones(); renderCongas();
+  renderTones(); renderCongas(); renderInst();
 }
 function applyTheme(){
   document.body.dataset.theme=S.theme;
@@ -938,22 +1123,24 @@ document.querySelectorAll('.viewtabs button').forEach(b=>{
 function setMode(m){
   S.mode=m;
   document.body.classList.toggle('perc',m==='perc');
+  document.body.classList.toggle('inst',m==='inst');
   tabChrom.classList.toggle('active',m==='chrom');
   tabPerc.classList.toggle('active',m==='perc');
-  $('modeTag').textContent=m==='perc'?T().perc:T().chrom;
-  if(analyser){ analyser.fftSize=CFG().fft; buf=new Float32Array(analyser.fftSize); }
-  S.held=null; S.cents=null; pitchWindow.length=0;
+  tabInst.classList.toggle('active',m==='inst');
+  $('modeTag').textContent=modoTxt();
+  aplicarCFG();
   renderTones(); save();
   if(!S.listening) clearDisplay();
 }
 tabChrom.onclick=()=>setMode('chrom');
 tabPerc.onclick=()=>setMode('perc');
+tabInst.onclick=()=>setMode('inst');
 
-a4Minus.onclick=()=>{ S.a4=Math.max(430,S.a4-1); a4Val.textContent=S.a4; save(); renderCongas(); };
-a4Plus.onclick =()=>{ S.a4=Math.min(450,S.a4+1); a4Val.textContent=S.a4; save(); renderCongas(); };
+a4Minus.onclick=()=>{ S.a4=Math.max(430,S.a4-1); a4Val.textContent=S.a4; save(); renderCongas(); renderInst(); };
+a4Plus.onclick =()=>{ S.a4=Math.min(450,S.a4+1); a4Val.textContent=S.a4; save(); renderCongas(); renderInst(); };
 tolMinus.onclick=()=>{ S.tol=Math.max(1,S.tol-1); tolVal.textContent=S.tol; save(); };
 tolPlus.onclick =()=>{ S.tol=Math.min(20,S.tol+1); tolVal.textContent=S.tol; save(); };
-tempSel.onchange=()=>{ S.temp=tempSel.value; save(); renderCongas(); };
+tempSel.onchange=()=>{ S.temp=tempSel.value; save(); renderCongas(); renderInst(); };
 langSel.onchange=()=>{ S.lang=langSel.value; save(); applyLang(); };
 themeSel.onchange=()=>{ S.theme=themeSel.value; save(); applyTheme(); };
 sensSlider.onchange=()=>save();
@@ -966,12 +1153,7 @@ tempSel.value=S.temp; langSel.value=S.lang; themeSel.value=S.theme;
 applyTheme();
 applyLang();
 // restore last mode & view
-if(S.mode==='perc'){
-  document.body.classList.add('perc');
-  tabChrom.classList.remove('active'); tabPerc.classList.add('active');
-  $('modeTag').textContent=T().perc;
-  renderTones();
-}
+if(S.mode!=='chrom') setMode(S.mode);
 if(S.view!=='needle'){
   document.querySelectorAll('.viewtabs button').forEach(x=>x.classList.toggle('active',x.dataset.view===S.view));
   document.querySelectorAll('.viz > *').forEach(el=>el.classList.remove('show'));
