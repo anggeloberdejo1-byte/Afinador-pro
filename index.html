@@ -171,6 +171,9 @@ body.perc .conga-card{display:block}
 .eb circle{fill:var(--btn);stroke:var(--line);cursor:pointer}
 .eb:hover circle{fill:var(--btn-hover)}
 .eb text{font-size:14px;font-weight:700;fill:var(--ink);pointer-events:none}
+.nombre-afin{border:2px solid var(--green);background:var(--card);border-radius:9px;padding:6px 10px;font-size:16px;color:var(--ink);flex:1;min-width:150px;max-width:320px;outline:none}
+.chip.mia{border-style:dashed;border-color:var(--gold)}
+.chip.mia.active{border-style:solid;border-color:var(--green)}
 .conga-tip{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6}
 
 /* ---------- instrumentos ---------- */
@@ -392,6 +395,18 @@ zh:{inst:'乐器',instTitle:'按乐器调音',instHint:'点击琴弦或音符听
 ja:{inst:'楽器',instTitle:'楽器別チューニング',instHint:'弦や音をタップして音を聴く',iGuit:'ギター',iBajo:'ベース',iTromp:'トランペット',iSax:'サックス',iTromb:'トロンボーン',iFlauta:'フルート',vAcu:'アコースティック',vElec:'エレキ',vCuerdas:'弦',vSib:'B♭管',vDo:'C管',vSop:'ソプラノ',vAlto:'アルト',vTenor:'テナー',vBari:'バリトン',aEst:'スタンダード',aDrop:'ドロップD',aMedio:'半音下げ',escrita:'記譜音',real:'実音',tipCuerda:'開放弦を弾いて響かせてください。最も近い弦が表示され、合うと緑になります。',tipBajo:'ローB弦まで届くよう低音域を拡張。スマホをアンプや楽器に近づけてください。',tipTransp:'移調楽器：「記譜音」は楽譜の音、「実音」は実際に鳴る音を表示します。楽器を温めてからロングトーンを吹いてください。',tipDo:'C管の楽器：記譜音と実音は同じです。楽器を温めてから安定したロングトーンを吹いてください。'}
 };
 for (const k in I18N_INST) Object.assign(I18N[k], I18N_INST[k]);
+const I18N_MIAS = {
+es:{guardarComo:'💾 Guardar como…',nombreAfin:'Nombre de la afinación',guardar:'Guardar',borrar:'🗑 Borrar',borrarConf:'¿Borrar esta afinación guardada?',tipMia:'Afinación guardada por ti. Usa ✎ Editar para cambiar sus notas; los cambios se guardan solos.'},
+en:{guardarComo:'💾 Save as…',nombreAfin:'Tuning name',guardar:'Save',borrar:'🗑 Delete',borrarConf:'Delete this saved tuning?',tipMia:'Your saved tuning. Use ✎ Edit to change its notes; changes are saved automatically.'},
+pt:{guardarComo:'💾 Salvar como…',nombreAfin:'Nome da afinação',guardar:'Salvar',borrar:'🗑 Apagar',borrarConf:'Apagar esta afinação salva?',tipMia:'Afinação salva por você. Use ✎ Editar para mudar as notas; as mudanças são salvas automaticamente.'},
+fr:{guardarComo:'💾 Enregistrer sous…',nombreAfin:'Nom de l’accordage',guardar:'Enregistrer',borrar:'🗑 Supprimer',borrarConf:'Supprimer cet accordage enregistré ?',tipMia:'Votre accordage enregistré. Utilisez ✎ Modifier pour changer ses notes ; les changements sont enregistrés automatiquement.'},
+de:{guardarComo:'💾 Speichern als…',nombreAfin:'Name der Stimmung',guardar:'Speichern',borrar:'🗑 Löschen',borrarConf:'Diese gespeicherte Stimmung löschen?',tipMia:'Deine gespeicherte Stimmung. Mit ✎ Bearbeiten die Noten ändern; Änderungen werden automatisch gespeichert.'},
+ru:{guardarComo:'💾 Сохранить как…',nombreAfin:'Название настройки',guardar:'Сохранить',borrar:'🗑 Удалить',borrarConf:'Удалить эту сохранённую настройку?',tipMia:'Ваша сохранённая настройка. Ноты меняются через ✎ Изменить; изменения сохраняются автоматически.'},
+zh:{guardarComo:'💾 另存为…',nombreAfin:'调音名称',guardar:'保存',borrar:'🗑 删除',borrarConf:'删除这个已保存的调音？',tipMia:'你保存的调音。用 ✎ 编辑修改音高；更改会自动保存。'},
+ja:{guardarComo:'💾 名前を付けて保存…',nombreAfin:'チューニング名',guardar:'保存',borrar:'🗑 削除',borrarConf:'保存したチューニングを削除しますか？',tipMia:'あなたが保存したチューニング。✎ 編集で音を変更でき、変更は自動保存されます。'}
+};
+for (const k in I18N_MIAS) Object.assign(I18N[k], I18N_MIAS[k]);
+function escHtml(x){ return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const SOLFEO = {
   es:['DO','DO#','RE','RE#','MI','FA','FA#','SOL','SOL#','LA','LA#','SI'],
@@ -473,7 +488,9 @@ function save(){
       lang:S.lang, theme:S.theme, a4:S.a4, temp:S.temp, tol:S.tol,
       sens:+sensSlider.value, congaPreset:S.congaPreset, congas,
       mode:S.mode, view:S.view, octave:S.octave, history:S.history.slice(0,40),
-      inst:S.inst, variante:S.variante, afinGuit:S.afinGuit, escrita:S.escrita
+      inst:S.inst, variante:S.variante, afinGuit:S.afinGuit, escrita:S.escrita,
+      misCongas:Object.entries(CONGA_PRESETS).filter(([k,p])=>p.custom).map(([k,p])=>({
+        k, titulo:p.labelKey, drums:p.drums.map(d=>({x:d.x,y:d.y,r:d.r,n:d.n,v:d.v.slice()})) }))
     }));
   }catch(e){}
 }
@@ -487,6 +504,15 @@ function load(){
     if(TEMPERAMENTS[d.temp]) S.temp=d.temp;
     if(d.tol>=1&&d.tol<=20) S.tol=d.tol;
     if(d.sens>=0&&d.sens<=100) sensSlider.value=d.sens;
+    // afinaciones propias guardadas con título
+    if(Array.isArray(d.misCongas)) d.misCongas.forEach(c=>{
+      if(!c || typeof c.k!=='string' || !/^mia_\d+$/.test(c.k) || !Array.isArray(c.drums) || !c.drums.length) return;
+      const ok=c.drums.every(x=>x && isFinite(x.x) && isFinite(x.y) && isFinite(x.r) &&
+        Array.isArray(x.v) && x.v.length && x.v.every(m=>m>=24&&m<=96));
+      if(!ok) return;
+      CONGA_PRESETS[c.k]={ labelKey:String(c.titulo||'').slice(0,30)||'—', custom:true,
+        drums:c.drums.map(x=>({x:+x.x,y:+x.y,r:+x.r,n:x.n?String(x.n).slice(0,8):undefined,v:x.v.slice()})) };
+    });
     if(CONGA_PRESETS[d.congaPreset]) S.congaPreset=d.congaPreset;
     if(d.congas) for(const k in d.congas){
       if(CONGA_PRESETS[k]) CONGA_PRESETS[k].drums.forEach((dr,i)=>{
@@ -937,20 +963,44 @@ const congaChipsEl=$('congaChips'), congaSvg=$('congaSvg'), congaTip=$('congaTip
 function renderCongas(){
   const p=CONGA_PRESETS[S.congaPreset];
   congaChipsEl.innerHTML=Object.entries(CONGA_PRESETS).map(([k,v])=>
-    `<button class="chip ${k===S.congaPreset?'active':''}" data-k="${k}">${v.labelKey}</button>`).join('');
+    `<button class="chip ${v.custom?'mia':''} ${k===S.congaPreset?'active':''}" data-k="${k}">${escHtml(v.labelKey)}</button>`).join('');
   document.getElementById('congaTools').innerHTML=
     `<button class="chip tool ${S.congaEdit?'active':''}" id="editChip">${T().edit}</button>
-     <button class="chip tool" id="resetChip">${T().reset}</button>`;
+     <button class="chip tool" id="resetChip">${T().reset}</button>
+     <button class="chip tool ${S.congaNombrando?'active':''}" id="guardarChip">${T().guardarComo}</button>`
+    +(p.custom?`<button class="chip tool" id="borrarChip">${T().borrar}</button>`:'')
+    +(S.congaNombrando?`<input class="nombre-afin" id="nombreAfin" maxlength="30" placeholder="${escHtml(T().nombreAfin)}" aria-label="${escHtml(T().nombreAfin)}">
+     <button class="chip tool active" id="okAfin">${T().guardar}</button>`:'');
+  $('guardarChip').onclick=()=>{ S.congaNombrando=!S.congaNombrando; renderCongas(); };
+  if(S.congaNombrando){
+    const campo=$('nombreAfin');
+    const guardarMia=()=>{
+      const titulo=campo.value.trim().slice(0,30);
+      if(!titulo){ campo.focus(); return; }
+      const k='mia_'+Date.now();
+      CONGA_PRESETS[k]={ labelKey:titulo, custom:true,
+        drums:p.drums.map(d=>({x:d.x,y:d.y,r:d.r,n:d.n,v:d.v.slice(),sel:d.sel||0})) };
+      S.congaPreset=k; S.congaNombrando=false; save(); renderCongas();
+    };
+    $('okAfin').onclick=guardarMia;
+    campo.onkeydown=e=>{ if(e.key==='Enter') guardarMia(); if(e.key==='Escape'){ S.congaNombrando=false; renderCongas(); } };
+    campo.focus();
+  }
+  if(p.custom) $('borrarChip').onclick=()=>{
+    if(!confirm(T().borrarConf)) return;
+    delete CONGA_PRESETS[S.congaPreset];
+    S.congaPreset='conguero'; S.congaNombrando=false; save(); renderCongas();
+  };
   congaChipsEl.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{
-    S.congaPreset=b.dataset.k; save(); renderCongas();
+    S.congaPreset=b.dataset.k; S.congaNombrando=false; save(); renderCongas();
   });
   $('editChip').onclick=()=>{ S.congaEdit=!S.congaEdit; renderCongas(); };
   $('resetChip').onclick=()=>{
-    for(const k in CONGA_PRESETS)
+    for(const k in DEFAULT_CONGAS)
       CONGA_PRESETS[k].drums.forEach((d,i)=>{ d.v=DEFAULT_CONGAS[k][i].slice(); d.sel=0; });
     save(); renderCongas();
   };
-  congaTip.textContent=(S.congaEdit?T().editTip+' ':'')+T()[p.tipKey];
+  congaTip.textContent=(S.congaEdit?T().editTip+' ':'')+(p.custom?T().tipMia:T()[p.tipKey]);
 
   congaSvg.innerHTML=p.drums.map((d,i)=>{
     d.sel=Math.min(d.sel||0, d.v.length-1);
