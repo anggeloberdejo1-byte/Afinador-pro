@@ -24,6 +24,8 @@
   --band1:#f0ebd6; --band2:#e8e1c8; --veil:rgba(251,248,236,.55); --tick:#b6ae90;
   --mono:ui-monospace,'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
   --radius:14px; --on-green:#fdfbf0;
+  /* verde y rojo de afinación: fijos en todas las paletas */
+  --ok:#1fae4b; --ok-suave:rgba(31,174,75,.16); --mal:#e0452f; --mal-suave:rgba(224,69,47,.12);
 }
 body[data-theme="oscuro"]{
   --bg:#211f19; --stripe:rgba(255,255,255,.03);
@@ -118,16 +120,19 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .note-row{display:flex;align-items:baseline;justify-content:center;gap:6px;min-height:100px}
 .note-name{font-size:100px;font-weight:700;letter-spacing:-.035em;color:var(--ink);line-height:1;transition:color .15s}
 .note-name.vacio{color:var(--tick);font-weight:400;font-size:56px;align-self:center;opacity:.7}
-.note-name.intune{color:var(--green)}
+.note-name.intune{color:var(--ok)}
+.note-name.fuera{color:var(--mal)}
 .note-oct{font-size:30px;color:var(--muted);font-weight:500}
 .cents-big{font-family:var(--mono);font-size:22px;font-weight:600;min-height:28px;letter-spacing:-.01em}
 .cents-big .val{color:var(--gold)}
-.cents-big.intune .val{color:var(--green)}
+.cents-big.intune .val{color:var(--ok)}
+.cents-big.fuera .val{color:var(--mal)}
 .freq-row{font-family:var(--mono);font-size:12.5px;color:var(--muted);min-height:18px}
 .freq-row b{color:var(--ink);font-weight:600}
 .status-line{font-size:13px;font-weight:500;color:var(--muted);min-height:18px;margin-top:6px}
 .intune-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tick);margin-right:7px;vertical-align:1px;transition:background .15s,box-shadow .15s}
-.intune-dot.on{background:var(--green);box-shadow:0 0 0 4px var(--band2),0 0 10px var(--green)}
+.intune-dot.on{background:var(--ok);box-shadow:0 0 0 4px var(--ok-suave),0 0 10px var(--ok)}
+.intune-dot.mal{background:var(--mal);box-shadow:0 0 0 4px var(--mal-suave)}
 
 /* ---------- view tabs ---------- */
 .viewtabs{display:flex;justify-content:center;margin:16px auto 10px;gap:2px;width:max-content;max-width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:3px}
@@ -200,7 +205,7 @@ body.perc .conga-card{display:block}
 .preset-row .spacer{flex:1}
 #congaSvg{width:100%;max-width:520px;margin:0 auto;display:block}
 #congaSvg text{font-family:var(--sans)}
-.cg .outer{fill:var(--card2);stroke:var(--tick);stroke-width:1.5;transition:stroke .15s;cursor:pointer}
+.cg .outer{fill:var(--card2);stroke:var(--tick);stroke-width:1.5;transition:stroke .15s,fill .15s;cursor:pointer}
 .cg .inner{fill:var(--card);stroke:var(--line);stroke-width:1;transition:fill .15s;cursor:pointer}
 .cg text{pointer-events:none}
 .cg .nname{font-size:17px;font-weight:700;fill:var(--ink)}
@@ -209,8 +214,12 @@ body.perc .conga-card{display:block}
 .cg:hover .inner{fill:var(--card2)}
 .cg.playing .inner{fill:var(--gold-soft)}
 .cg.playing .outer{stroke:var(--gold);stroke-width:3.5}
-.cg.match .outer{stroke:var(--green);stroke-width:4}
-.cg.match .nname{fill:var(--green)}
+.cg.match .outer{stroke:var(--ok);stroke-width:5;fill:var(--ok)}
+.cg.match .inner{fill:var(--ok);stroke:rgba(255,255,255,.55)}
+.cg.match .nname,.cg.match .nfreq,.cg.match .nnum{fill:#fff}
+.cg.match{filter:drop-shadow(0 0 8px var(--ok))}
+.cg.fuera .outer{stroke:var(--mal);stroke-width:4}
+.cg.fuera .nname{fill:var(--mal)}
 .eb circle{fill:var(--btn);stroke:var(--line);cursor:pointer}
 .eb:hover circle{fill:var(--btn-hover)}
 .eb text{font-size:14px;font-weight:700;fill:var(--ink);pointer-events:none}
@@ -232,9 +241,11 @@ body.inst .inst-card{display:block}
 .nota-inst .num{font-size:10.5px;color:var(--gold);font-weight:700}
 .nota-inst b{font-size:19px;font-weight:700;color:var(--ink)}
 .nota-inst small{font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:400}
-.nota-inst.cerca{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
-.nota-inst.match{border-color:var(--green);box-shadow:0 0 0 1px var(--green);background:var(--band2)}
-.nota-inst.match b{color:var(--green)}
+.nota-inst{transition:background .15s,border-color .15s,box-shadow .15s}
+.nota-inst.cerca{border-color:var(--mal);box-shadow:0 0 0 2px var(--mal);background:var(--mal-suave)}
+.nota-inst.cerca b{color:var(--mal)}
+.nota-inst.match{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok),0 0 16px -2px var(--ok);background:var(--ok)}
+.nota-inst.match b,.nota-inst.match small,.nota-inst.match .num{color:#fff}
 .nota-inst.playing .num,.nota-inst.playing b,.nota-inst.playing small{color:#fff}
 
 .perc-note{display:none;font-size:12.5px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:10px;padding:10px 14px;margin-bottom:12px;line-height:1.5}
@@ -261,8 +272,9 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
 
 /* ---------- dial (vista Aguja) ---------- */
 .card.main .viewtabs{margin:0 auto 12px}
-.card.main{transition:border-color .25s,box-shadow .25s}
-.card.main.afinado{border-color:var(--green);box-shadow:var(--sombra),0 0 0 1px var(--green),0 0 34px -10px var(--green)}
+.card.main{transition:border-color .2s,box-shadow .2s,background-color .2s}
+.card.main.afinado{border-color:var(--ok);background-color:var(--ok-suave);box-shadow:var(--sombra),0 0 0 3px var(--ok),0 0 40px -6px var(--ok)}
+.card.main.desafinado{border-color:var(--mal);box-shadow:var(--sombra),0 0 0 2px var(--mal)}
 .stage{position:relative}
 .card.main[data-view="needle"] .stage{width:min(100%,400px);aspect-ratio:400/340;margin:0 auto 62px;container-type:inline-size}
 .card.main[data-view="needle"] .viz{position:absolute;inset:0;height:auto;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}
@@ -280,7 +292,7 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
 .card.main[data-view="needle"] .status-line{top:calc(100% + 42px)}
 #needleSvg text{font-family:var(--sans);font-weight:600}
 #needleSvg .pista{stroke:var(--line);transition:stroke .25s}
-#needleSvg .cara{fill:var(--card2);stroke:var(--line);transition:stroke .25s}
+#needleSvg .cara{fill:var(--card2);stroke:var(--line);transition:stroke .25s,fill .25s}
 #needleSvg .tk{stroke:var(--tick);transition:stroke .2s}
 #needleSvg .tk.my{stroke:var(--muted)}
 #needleSvg .cero{fill:var(--green)}
@@ -290,13 +302,14 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
 #needleG .guia{stroke:var(--ink);transition:stroke .15s}
 #needleSvg.idle #needleG{opacity:.4}
 #needleSvg.afinado .pista{stroke:var(--band2)}
-#needleSvg.afinado .cara{stroke:var(--green)}
-#needleSvg.afinado .tk{stroke:var(--green)}
-#needleSvg.afinado #devArc{stroke:var(--green)}
-#needleSvg.afinado #needleG{filter:drop-shadow(0 0 7px var(--green))}
-#needleSvg.afinado #needleG .perilla{fill:var(--green);stroke:var(--card)}
-#needleSvg.afinado #needleG .guia{stroke:var(--green)}
-#onda{fill:none;stroke:var(--green);stroke-width:3;opacity:0;transform-origin:200px 200px}
+#needleSvg.afinado .cara{stroke:var(--ok);fill:var(--ok-suave)}
+#needleSvg.afinado .tk{stroke:var(--ok)}
+#needleSvg.afinado #devArc{stroke:var(--ok)}
+#needleSvg.afinado #needleG{filter:drop-shadow(0 0 7px var(--ok))}
+#needleSvg.afinado #needleG .perilla{fill:var(--ok);stroke:var(--card)}
+#needleSvg.desafinado #devArc{stroke:var(--mal)}
+#needleSvg.afinado #needleG .guia{stroke:var(--ok)}
+#onda{fill:none;stroke:var(--ok);stroke-width:3;opacity:0;transform-origin:200px 200px}
 #onda.va{animation:onda .7s cubic-bezier(.2,.7,.3,1)}
 @keyframes onda{0%{opacity:.75;transform:scale(.96)}100%{opacity:0;transform:scale(1.32)}}
 
@@ -878,20 +891,20 @@ function updateDisplay(r, live){
     noteName.textContent=r.name;
     noteOct.textContent=r.oct;
   }
-  noteName.classList.toggle('intune',inTune); noteName.classList.remove('vacio');
+  noteName.classList.toggle('intune',inTune); noteName.classList.toggle('fuera',!inTune); noteName.classList.remove('vacio');
   centsVal.textContent=`${r.cents>0?'+':''}${r.cents.toFixed(1)} ¢`;
-  centsBig.classList.toggle('intune',inTune);
+  centsBig.classList.toggle('intune',inTune); centsBig.classList.toggle('fuera',!inTune);
   freqRow.innerHTML=`<b>${r.freq.toFixed(2)} Hz</b> · ${T().target} ${r.target.toFixed(2)} Hz`
     +(tp?` · ${T().real}: <b>${etiquetaNota(r.midi)}</b>`:'');
-  dot.classList.toggle('on',inTune);
+  dot.classList.toggle('on',inTune); dot.classList.toggle('mal',!inTune);
   statusTxt.textContent = inTune ? T().inTune : (r.cents<0?T().low:T().high)+(live?'':T().held);
-  if(S.mode==='perc') congaMatch(r.name+r.oct);
+  if(S.mode==='perc') congaMatch(r);
   if(S.mode==='inst') instMatch(r);
 }
 function clearDisplay(keepListening){
-  noteName.textContent='—'; noteName.classList.remove('intune'); noteName.classList.add('vacio');
-  noteOct.textContent=''; centsVal.innerHTML='&nbsp;'; centsBig.classList.remove('intune');
-  freqRow.innerHTML='&nbsp;'; dot.classList.remove('on');
+  noteName.textContent='—'; noteName.classList.remove('intune','fuera'); noteName.classList.add('vacio');
+  noteOct.textContent=''; centsVal.innerHTML='&nbsp;'; centsBig.classList.remove('intune','fuera');
+  freqRow.innerHTML='&nbsp;'; dot.classList.remove('on','mal');
   if(keepListening) statusTxt.textContent=T().listening;
   congaMatch(null);
   instMatch(null);
@@ -988,6 +1001,7 @@ function drawNeedle(){
   const tune=has&&Math.abs(S.held.cents)<=S.tol;
   needleSvg.classList.toggle('idle',!has);
   needleSvg.classList.toggle('afinado',tune);
+  needleSvg.classList.toggle('desafinado',has&&!tune);
   if(tune&&!needleTune){ const o=$('onda'); o.classList.remove('va'); o.getBoundingClientRect(); o.classList.add('va'); }
   needleTune=tune;
 }
@@ -1066,7 +1080,9 @@ function fitCanvas(cv){
 function drawViz(){
   const mc=needleSvg.closest('.card');
   if(mc.dataset.view!==S.view) mc.dataset.view=S.view;
-  mc.classList.toggle('afinado',!!S.held&&Math.abs(S.held.cents)<=S.tol);
+  const afin=!!S.held&&Math.abs(S.held.cents)<=S.tol;
+  mc.classList.toggle('afinado',afin);
+  mc.classList.toggle('desafinado',!!S.held&&!afin);
   const L=noteName.textContent.length, len=L>3?'l':L>1?'m':'s';
   if(noteName.dataset.len!==len) noteName.dataset.len=len;
   if(S.view==='needle') drawNeedle();
@@ -1314,15 +1330,22 @@ function renderCongas(){
   });
 }
 let arrastroTambor=false;
-function congaMatch(noteKey){
+function congaMatch(r){
   const p=CONGA_PRESETS[S.congaPreset];
-  congaSvg.querySelectorAll('.cg').forEach(g=>{
-    const d=p.drums[+g.dataset.i];
-    const hit=noteKey && d.v.some(m=>{
-      const pc=((m%12)+12)%12;
-      return NOTE_NAMES[pc]+(Math.floor(m/12)-1)===noteKey;
+  const grupos=[...congaSvg.querySelectorAll('.cg')];
+  let mejor=null, dist=99, afinado=false;
+  if(r){
+    const real=r.midi+r.cents/100;
+    grupos.forEach(g=>{
+      p.drums[+g.dataset.i].v.forEach(m=>{
+        const d=Math.abs(real-m);
+        if(d<dist && d<=1.5){ dist=d; mejor=g; afinado = m===r.midi && Math.abs(r.cents)<=S.tol; }
+      });
     });
-    g.classList.toggle('match',!!hit);
+  }
+  grupos.forEach(g=>{
+    g.classList.toggle('match',g===mejor && afinado);
+    g.classList.toggle('fuera',g===mejor && !afinado);
   });
 }
 
