@@ -230,6 +230,17 @@ body.perc .conga-card{display:block}
 .eb.del text{fill:var(--red);font-size:11px}
 #congaSvg.editando{touch-action:none}
 #congaSvg.editando .cg .outer,#congaSvg.editando .cg .inner{cursor:grab}
+.arm-box{border-top:1px solid var(--line);padding-top:12px;margin-bottom:6px}
+.arm-modo .chip{min-width:110px;justify-content:center}
+.arm-ajuste{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.arm-lbl{font-size:13px;color:var(--muted)}
+.arm-ajuste .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.arm-ajuste .stepper button{width:40px;height:38px;border:0;background:var(--btn);color:var(--ink);font-size:18px;cursor:pointer}
+.arm-ajuste .stepper b{min-width:52px;text-align:center;font-family:var(--mono);font-size:16px}
+.arm-calib{font-size:14px;line-height:1.5;color:var(--ink);background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:10px 12px;margin-bottom:10px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.arm-calib.ok{border-left-color:var(--ok)}
+.arm-tip{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 8px}
+.cg .nname.arm{font-size:19px}
 .conga-tip{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
 .conga-tip:empty{display:none}
 
@@ -473,6 +484,7 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
   <h2><span id="congaTitle"></span> <span class="hint" id="congaHint"></span></h2>
   <div class="preset-row" id="congaChips"></div>
   <div class="preset-row" id="congaTools"></div>
+  <div class="arm-box" id="armBox"></div>
   <svg id="congaSvg" viewBox="0 0 400 285" xmlns="http://www.w3.org/2000/svg"></svg>
   <div class="conga-tip" id="congaTip"></div>
 </div>
@@ -560,6 +572,23 @@ zh:{masTambor:'＋ 鼓',editTip2:'拖动鼓可移动位置，＋ 鼓 可添加�
 ja:{masTambor:'＋ ドラム',editTip2:'ドラムをドラッグして移動、＋ ドラムで追加、✕ で削除できます。'}
 };
 for (const k in I18N_MOVER) Object.assign(I18N[k], I18N_MOVER[k]);
+const I18N_ARM = {
+es:{armModo:'Modo de afinación',armNormal:'Normal',armArm:'Armónicos',armSube:'El armónico sube',armSemis:'semitonos',
+  int4:'Cuarta',int5:'Quinta',int6m:'Sexta menor',int6:'Sexta',int8:'Octava',armMedir:'🎯 Medir mi conga',armCancelar:'Cancelar',
+  armPaso1:'Toca el <b>tono abierto</b> de tu conga ya afinada (sin pisar) y déjalo sonar.',
+  armPaso2:'Ahora <b>pisa el centro exacto</b> con un dedo y toca el <b>armónico</b> cerca del borde, a la altura del tensor.',
+  armListo:'Listo. En tu conga el armónico sube {n} semitonos. Ya quedó guardado.',
+  armTip:'Pisa el centro exacto del cuero con un dedo y toca con otro dedo cerca del borde, a la altura del tensor. Cada tambor muestra en grande el armónico que debes buscar; se pone verde cuando le das.',
+  armAfina:'afina',armSuena:'armónico'},
+en:{armModo:'Tuning mode',armNormal:'Normal',armArm:'Harmonics',armSube:'The harmonic rises',armSemis:'semitones',
+  int4:'Fourth',int5:'Fifth',int6m:'Minor sixth',int6:'Sixth',int8:'Octave',armMedir:'🎯 Measure my conga',armCancelar:'Cancel',
+  armPaso1:'Play the <b>open tone</b> of your tuned conga (no pressing) and let it ring.',
+  armPaso2:'Now <b>press the exact center</b> with one finger and play the <b>harmonic</b> near the rim, by the tension lug.',
+  armListo:'Done. On your conga the harmonic rises {n} semitones. It has been saved.',
+  armTip:'Press the exact center of the head with one finger and play near the rim, by the tension lug, with another. Each drum shows the harmonic to aim for in big letters; it turns green when you hit it.',
+  armAfina:'tunes',armSuena:'harmonic'}
+};
+for (const k in I18N) Object.assign(I18N[k], I18N_ARM.en, I18N_ARM[k]||{});
 // tambores: validación y copia (posición, tamaño y notas)
 function tamboresValidos(arr){
   return Array.isArray(arr) && arr.length>=1 && arr.length<=8 && arr.every(x=>x && isFinite(x.x) && isFinite(x.y) && isFinite(x.r) &&
@@ -608,7 +637,8 @@ const S = {
   stableCount:0, stableKey:null, recordedKey:null, history:[],
   lang:'es', theme:'crema', congaPreset:'conguero', congaEdit:false,
   inst:'guitarra', variante:{guitarra:'acustica',bajo:'4',trompeta:'sib',sax:'alto'},
-  afinGuit:'estandar', escrita:true
+  afinGuit:'estandar', escrita:true,
+  percArm:false, armSemis:8, calib:null
 };
 /* ================= instrumentos ================= */
 // Notas en MIDI de concierto. transp = semitonos que la nota escrita queda por encima del tono real.
@@ -651,6 +681,7 @@ function save(){
       sens:+sensSlider.value, congaPreset:S.congaPreset, congas,
       mode:S.mode, view:S.view, octave:S.octave, history:S.history.slice(0,40),
       inst:S.inst, variante:S.variante, afinGuit:S.afinGuit, escrita:S.escrita,
+      percArm:S.percArm, armSemis:S.armSemis,
       tambores:Object.fromEntries(Object.keys(DEFAULT_CONGAS).map(k=>[k,copiaTambores(CONGA_PRESETS[k].drums)])),
       misCongas:Object.entries(CONGA_PRESETS).filter(([k,p])=>p.custom).map(([k,p])=>({
         k, titulo:p.labelKey, drums:p.drums.map(d=>({x:d.x,y:d.y,r:d.r,n:d.n,v:d.v.slice()})) }))
@@ -686,6 +717,8 @@ function load(){
       });
     }
     if(d.mode==='perc'||d.mode==='chrom'||d.mode==='inst') S.mode=d.mode;
+    S.percArm=d.percArm===true;
+    if(d.armSemis>=3&&d.armSemis<=20) S.armSemis=d.armSemis;
     if(INSTRUMENTOS[d.inst]) S.inst=d.inst;
     if(d.variante) for(const k in S.variante){
       if(INSTRUMENTOS[k].variantes.includes(d.variante[k])) S.variante[k]=d.variante[k];
@@ -698,7 +731,7 @@ function load(){
   }catch(e){}
 }
 const CFG = () => {
-  if(S.mode==='perc') return { fmin:40, fmax:600,  holdMs:2500, fft:8192 };
+  if(S.mode==='perc') return { fmin:40, fmax:S.percArm?1000:600,  holdMs:2500, fft:8192 };
   if(S.mode==='inst'){
     // el bajo de 5 y 6 cuerdas baja hasta SI0 (30.9 Hz)
     if(S.inst==='bajo')     return { fmin:27, fmax:520,  holdMs:1500, fft:8192 };
@@ -835,7 +868,9 @@ function loop(){
     pitchWindow.push(f);
     if(pitchWindow.length>7) pitchWindow.shift();
     const sorted=[...pitchWindow].sort((a,b)=>a-b);
-    const r=analyzeFreq(sorted[Math.floor(sorted.length/2)]);
+    const fMed=sorted[Math.floor(sorted.length/2)];
+    if(S.calib) calibAlimentar(fMed);
+    const r=modoArm() ? aArmonico(fMed) : analyzeFreq(fMed);
     S.cents=(S.cents===null||Math.abs(r.cents-S.cents)>20)? r.cents : S.cents+(r.cents-S.cents)*0.35;
     r.cents=S.cents;
     S.held=r; S.lastGood=now;
@@ -844,12 +879,89 @@ function loop(){
   } else {
     if(S.held && now-S.lastGood<CFG().holdMs){ updateDisplay(S.held,false); }
     else{
+      if(S.calib) S.calib.muestras.length=0;
       S.held=null; S.cents=null; pitchWindow.length=0;
       S.stableCount=0; S.stableKey=null; S.recordedKey=null;
       clearDisplay(true);
     }
   }
   drawViz();
+}
+/* ================= armónicos de conga =================
+   Se pisa el centro exacto del cuero con un dedo y se toca cerca del borde (a la altura
+   del tensor). Suena un armónico más agudo que el tono abierto; S.armSemis guarda cuántos
+   semitonos sube. En modo Armónicos convertimos lo que suena a la nota del tambor. */
+function modoArm(){ return S.mode==='perc' && S.percArm; }
+function aArmonico(f){
+  const r=analyzeFreq(f/Math.pow(2,S.armSemis/12));
+  r.armMidi=Math.round(69+12*Math.log2(f/S.a4));
+  r.target*=Math.pow(2,S.armSemis/12);
+  r.freq=f;
+  return r;
+}
+function nombreIntervalo(st){
+  const t=T(), n={5:t.int4,7:t.int5,8:t.int6m,9:t.int6,12:t.int8}[st];
+  return Math.abs(st-Math.round(st))<0.05 && n ? n : '';
+}
+function calibAlimentar(f){
+  const c=S.calib;
+  if(c.paso===3) return;
+  c.muestras.push(f);
+  if(c.muestras.length>14) c.muestras.shift();
+  if(c.muestras.length<14) return;
+  const o=[...c.muestras].sort((a,b)=>a-b);
+  if(1200*Math.log2(o[13]/o[0])>35) return;            // todavía no está estable
+  const med=o[7];
+  if(c.paso===1){ c.abierto=med; c.paso=2; c.muestras.length=0; renderArm(); return; }
+  const st=12*Math.log2(med/c.abierto);
+  if(st<3 || st>20) return;                            // sigue sonando el tono abierto u otra cosa
+  S.armSemis=Math.round(st*10)/10; S.percArm=true; c.paso=3; c.muestras.length=0;
+  save(); renderArm(); renderCongas();
+}
+function renderArm(){
+  const t=T(), caja=$('armBox');
+  if(!caja) return;
+  const st=S.armSemis, nom=nombreIntervalo(st);
+  let h=`<div class="preset-row arm-modo" role="group" aria-label="${escHtml(t.armModo)}">
+      <button class="chip ${S.percArm?'':'active'}" data-arm="0">${t.armNormal}</button>
+      <button class="chip ${S.percArm?'active':''}" data-arm="1">${t.armArm}</button>
+    </div>`;
+  if(S.percArm){
+    h+=`<div class="arm-ajuste">
+        <span class="arm-lbl">${t.armSube}</span>
+        <span class="stepper"><button data-d="-1" aria-label="−">−</button><b>+${st.toFixed(st%1?1:0)}</b><button data-d="1" aria-label="+">+</button></span>
+        <span class="arm-lbl">${t.armSemis}${nom?' · '+nom:''}</span>
+      </div>
+      <div class="preset-row">
+        ${[7,8,9,12].map(n=>`<button class="chip tool ${st===n?'active':''}" data-st="${n}">${nombreIntervalo(n)}</button>`).join('')}
+        <button class="chip tool ${S.calib?'active':''}" id="medirChip">${t.armMedir}</button>
+      </div>`;
+  }
+  if(S.calib){
+    const c=S.calib;
+    const msg = c.paso===1 ? t.armPaso1 : c.paso===2 ? t.armPaso2
+      : t.armListo.replace('{n}', '+'+S.armSemis.toFixed(1)) + (nombreIntervalo(Math.round(S.armSemis)) ? ' (≈ '+nombreIntervalo(Math.round(S.armSemis))+')' : '');
+    h+=`<div class="arm-calib ${c.paso===3?'ok':''}"><b>${c.paso<3?(c.paso+'/2 · '):'✓ '}</b>${msg}
+      <button class="chip tool" id="calibFin">${c.paso===3?t.cerrar:t.armCancelar}</button></div>`;
+  }
+  if(S.percArm && !S.calib) h+=`<p class="arm-tip">${t.armTip}</p>`;
+  caja.innerHTML=h;
+  caja.querySelectorAll('[data-arm]').forEach(b=>b.onclick=()=>{
+    S.percArm=b.dataset.arm==='1'; if(!S.percArm) S.calib=null;
+    S.held=null; S.cents=null; save(); renderArm(); renderCongas(); clearDisplay(S.listening);
+  });
+  caja.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{ S.armSemis=+b.dataset.st; save(); renderArm(); renderCongas(); });
+  caja.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
+    S.armSemis=Math.max(3,Math.min(20,Math.round(S.armSemis)+ +b.dataset.d)); save(); renderArm(); renderCongas();
+  });
+  const medir=$('medirChip');
+  if(medir) medir.onclick=()=>{
+    if(S.calib){ S.calib=null; renderArm(); return; }
+    S.calib={paso:1,abierto:null,muestras:[]}; renderArm();
+    if(!S.listening) startListening();
+  };
+  const fin=$('calibFin');
+  if(fin) fin.onclick=()=>{ S.calib=null; renderArm(); };
 }
 function trackStability(r){
   const key=r.name+r.oct;
@@ -894,7 +1006,7 @@ function updateDisplay(r, live){
   noteName.classList.toggle('intune',inTune); noteName.classList.toggle('fuera',!inTune); noteName.classList.remove('vacio');
   centsVal.textContent=`${r.cents>0?'+':''}${r.cents.toFixed(1)} ¢`;
   centsBig.classList.toggle('intune',inTune); centsBig.classList.toggle('fuera',!inTune);
-  freqRow.innerHTML=`<b>${r.freq.toFixed(2)} Hz</b> · ${T().target} ${r.target.toFixed(2)} Hz`
+  freqRow.innerHTML=(r.armMidi!==undefined?`${T().armSuena} <b>${noteLabel(r.armMidi)}</b> · `:'')+`<b>${r.freq.toFixed(2)} Hz</b> · ${T().target} ${r.target.toFixed(2)} Hz`
     +(tp?` · ${T().real}: <b>${etiquetaNota(r.midi)}</b>`:'');
   dot.classList.toggle('on',inTune); dot.classList.toggle('mal',!inTune);
   statusTxt.textContent = inTune ? T().inTune : (r.cents<0?T().low:T().high)+(live?'':T().held);
@@ -1116,7 +1228,7 @@ async function playTone(midi, btn, cuerda){
   await audioCtx.resume();
   toneOsc=audioCtx.createOscillator();
   toneGain=audioCtx.createGain();
-  toneOsc.frequency.value=midiFreq(midi);
+  toneOsc.frequency.value=midiFreq(midi)*(modoArm()&&btn&&btn.classList.contains('cg')?Math.pow(2,S.armSemis/12):1);
   toneGain.gain.setValueAtTime(0,audioCtx.currentTime);
   if(cuerda){
     // timbre con armónicos: las notas graves del bajo se oyen también en el parlante del celular
@@ -1232,6 +1344,7 @@ function renderCongas(){
     for(const k in DEFAULT_CONGAS) CONGA_PRESETS[k].drums=copiaTambores(DEFAULT_CONGAS[k]);
     save(); renderCongas();
   };
+  renderArm();
   congaTip.textContent=(S.congaEdit?T().editTip+' '+T().editTip2+' ':'')+(p.custom?T().tipMia:T()[p.tipKey]);
 
   congaSvg.innerHTML=p.drums.map((d,i)=>{
@@ -1240,8 +1353,11 @@ function renderCongas(){
     let g=`<g class="tb"><g class="cg" data-i="${i}">
       <circle class="outer" cx="${d.x}" cy="${d.y}" r="${d.r}"/>
       <circle class="inner" cx="${d.x}" cy="${d.y}" r="${d.r-7}"/>
-      <text class="nname" x="${d.x}" y="${d.y+1}" text-anchor="middle">${noteLabel(m)}</text>
-      <text class="nfreq" x="${d.x}" y="${d.y+15}" text-anchor="middle">${midiFreq(m).toFixed(1)} Hz</text>
+      ${S.percArm
+        ? `<text class="nname arm" x="${d.x}" y="${d.y+1}" text-anchor="middle">${noteLabel(Math.round(m+S.armSemis))}</text>
+      <text class="nfreq" x="${d.x}" y="${d.y+15}" text-anchor="middle">${T().armAfina} ${noteLabel(m)}</text>`
+        : `<text class="nname" x="${d.x}" y="${d.y+1}" text-anchor="middle">${noteLabel(m)}</text>
+      <text class="nfreq" x="${d.x}" y="${d.y+15}" text-anchor="middle">${midiFreq(m).toFixed(1)} Hz</text>`}
       ${d.n?`<text class="nnum" x="${d.x}" y="${d.y-16}" text-anchor="middle">${d.n}</text>`:''}
     </g>`;
     if(S.congaEdit){
