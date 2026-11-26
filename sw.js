@@ -1,4 +1,4 @@
-const CACHE = 'afinador-pro-v9';
+const CACHE = 'afinador-pro-v10';
 const FILES = ['./', './index.html', './apple-touch-icon.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,11 +15,11 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Red primero (para recibir actualizaciones); si no hay internet, usa la copia local
+// Red primero, sin caché del navegador (para recibir actualizaciones al instante); si no hay internet, usa la copia local
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request).then(r => {
+    fetch(e.request, { cache: 'no-cache' }).then(r => {
       const copy = r.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy));
       return r;

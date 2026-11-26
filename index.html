@@ -439,6 +439,7 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
   <div class="preset-row" id="instChips"></div>
   <div class="preset-row" id="instVar"></div>
   <div class="preset-row" id="instAfin"></div>
+  <div class="sonido-caja"></div>
   <div class="notas-inst" id="instNotas"></div>
   <div class="conga-tip" id="instTip"></div>
 </div>
@@ -477,6 +478,7 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
     <span class="lbl" id="octLbl"></span>
     <div id="octChips"></div>
   </div>
+  <div class="sonido-caja"></div>
   <div class="notes-grid" id="notesGrid"></div>
   <div class="tone-tip" id="toneTip"></div>
 </div>
@@ -486,6 +488,7 @@ footer .by{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
   <h2><span id="congaTitle"></span> <span class="hint" id="congaHint"></span></h2>
   <div class="preset-row" id="congaChips"></div>
   <div class="preset-row" id="congaTools"></div>
+  <div class="sonido-caja"></div>
   <div class="arm-box" id="armBox"></div>
   <svg id="congaSvg" viewBox="0 0 400 285" xmlns="http://www.w3.org/2000/svg"></svg>
   <div class="conga-tip" id="congaTip"></div>
@@ -582,7 +585,7 @@ es:{armModo:'Modo de afinación',armNormal:'Normal',armArm:'Armónicos',armSube:
   armListo:'Listo. En tu conga el armónico sube {n} semitonos. Ya quedó guardado.',
   armTip:'Pisa el centro exacto del cuero con un dedo y toca con otro dedo cerca del borde, a la altura del tensor. Cada tambor muestra en grande el armónico que debes buscar; se pone verde cuando le das.',
   armAfina:'afina',armSuena:'armónico',
-  sonLbl:'Sonido del tambor:',sonCorto:'⏱ Corto',sonFijo:'🔁 Fijo',sonTip:'El sonido se queda sonando hasta que vuelvas a tocar el tambor (o toques otro).'},
+  sonCorto:'⏱ Corto',sonFijo:'🔁 Fijo',sonLbl:'Sonido:',sonTip:'El sonido se queda sonando hasta que lo vuelvas a tocar para apagarlo (o toques otro).',sonTipCorto:'El sonido se apaga solo a los pocos segundos.'},
 en:{armModo:'Tuning mode',armNormal:'Normal',armArm:'Harmonics',armSube:'The harmonic rises',armSemis:'semitones',
   int4:'Fourth',int5:'Fifth',int6m:'Minor sixth',int6:'Sixth',int8:'Octave',armMedir:'🎯 Measure my conga',armCancelar:'Cancel',
   armPaso1:'Play the <b>open tone</b> of your tuned conga (no pressing) and let it ring.',
@@ -590,7 +593,7 @@ en:{armModo:'Tuning mode',armNormal:'Normal',armArm:'Harmonics',armSube:'The har
   armListo:'Done. On your conga the harmonic rises {n} semitones. It has been saved.',
   armTip:'Press the exact center of the head with one finger and play near the rim, by the tension lug, with another. Each drum shows the harmonic to aim for in big letters; it turns green when you hit it.',
   armAfina:'tunes',armSuena:'harmonic',
-  sonLbl:'Drum sound:',sonCorto:'⏱ Short',sonFijo:'🔁 Hold',sonTip:'The sound keeps ringing until you tap the drum again (or tap another one).'}
+  sonCorto:'⏱ Short',sonFijo:'🔁 Hold',sonLbl:'Sound:',sonTip:'The sound keeps ringing until you tap it again to stop it (or tap another one).',sonTipCorto:'The sound stops on its own after a few seconds.'}
 };
 for (const k in I18N) Object.assign(I18N[k], I18N_ARM.en, I18N_ARM[k]||{});
 // tambores: validación y copia (posición, tamaño y notas)
@@ -642,7 +645,7 @@ const S = {
   lang:'es', theme:'crema', congaPreset:'conguero', congaEdit:false,
   inst:'guitarra', variante:{guitarra:'acustica',bajo:'4',trompeta:'sib',sax:'alto'},
   afinGuit:'estandar', escrita:true,
-  percArm:false, armSemis:8, calib:null, sonidoFijo:false
+  percArm:false, armSemis:8, calib:null, sonidoFijo:true
 };
 /* ================= instrumentos ================= */
 // Notas en MIDI de concierto. transp = semitonos que la nota escrita queda por encima del tono real.
@@ -685,7 +688,7 @@ function save(){
       sens:+sensSlider.value, congaPreset:S.congaPreset, congas,
       mode:S.mode, view:S.view, octave:S.octave, history:S.history.slice(0,40),
       inst:S.inst, variante:S.variante, afinGuit:S.afinGuit, escrita:S.escrita,
-      percArm:S.percArm, armSemis:S.armSemis, sonidoFijo:S.sonidoFijo,
+      percArm:S.percArm, armSemis:S.armSemis, fijo:S.sonidoFijo,
       tambores:Object.fromEntries(Object.keys(DEFAULT_CONGAS).map(k=>[k,copiaTambores(CONGA_PRESETS[k].drums)])),
       misCongas:Object.entries(CONGA_PRESETS).filter(([k,p])=>p.custom).map(([k,p])=>({
         k, titulo:p.labelKey, drums:p.drums.map(d=>({x:d.x,y:d.y,r:d.r,n:d.n,v:d.v.slice()})) }))
@@ -722,7 +725,7 @@ function load(){
     }
     if(d.mode==='perc'||d.mode==='chrom'||d.mode==='inst') S.mode=d.mode;
     S.percArm=d.percArm===true;
-    S.sonidoFijo=d.sonidoFijo===true;
+    if(typeof d.fijo==='boolean') S.sonidoFijo=d.fijo;
     if(d.armSemis>=3&&d.armSemis<=20) S.armSemis=d.armSemis;
     if(INSTRUMENTOS[d.inst]) S.inst=d.inst;
     if(d.variante) for(const k in S.variante){
@@ -923,20 +926,30 @@ function calibAlimentar(f){
   S.armSemis=Math.round(st*10)/10; S.percArm=true; c.paso=3; c.muestras.length=0;
   save(); renderArm(); renderCongas();
 }
+// Sonido de referencia: Corto (se apaga solo) o Fijo (suena hasta volver a tocar). Sale en las 3 pestañas.
+function renderSonido(){
+  const t=T();
+  document.querySelectorAll('.sonido-caja').forEach(caja=>{
+    caja.innerHTML=`<div class="sonido-fila"><span class="arm-lbl">${t.sonLbl}</span>
+      <span class="preset-row" role="group" aria-label="${escHtml(t.sonLbl)}">
+        <button class="chip tool ${S.sonidoFijo?'':'active'}" data-fijo="0">${t.sonCorto}</button>
+        <button class="chip tool ${S.sonidoFijo?'active':''}" data-fijo="1">${t.sonFijo}</button>
+      </span></div>
+      <p class="arm-tip">${S.sonidoFijo?t.sonTip:t.sonTipCorto}</p>`;
+    caja.querySelectorAll('[data-fijo]').forEach(b=>b.onclick=()=>{
+      S.sonidoFijo=b.dataset.fijo==='1'; stopTone(); save(); renderSonido();
+    });
+  });
+}
 function renderArm(){
+  renderSonido();
   const t=T(), caja=$('armBox');
   if(!caja) return;
   const st=S.armSemis, nom=nombreIntervalo(st);
   let h=`<div class="preset-row arm-modo" role="group" aria-label="${escHtml(t.armModo)}">
       <button class="chip ${S.percArm?'':'active'}" data-arm="0">${t.armNormal}</button>
       <button class="chip ${S.percArm?'active':''}" data-arm="1">${t.armArm}</button>
-    </div>
-    <div class="sonido-fila"><span class="arm-lbl">${t.sonLbl}</span>
-      <span class="preset-row" role="group" aria-label="${escHtml(t.sonLbl)}">
-        <button class="chip tool ${S.sonidoFijo?'':'active'}" data-fijo="0">${t.sonCorto}</button>
-        <button class="chip tool ${S.sonidoFijo?'active':''}" data-fijo="1">${t.sonFijo}</button>
-      </span></div>
-    ${S.sonidoFijo?`<p class="arm-tip">${t.sonTip}</p>`:''}`;
+    </div>`;
   if(S.percArm){
     h+=`<div class="arm-ajuste">
         <span class="arm-lbl">${t.armSube}</span>
@@ -960,9 +973,6 @@ function renderArm(){
   caja.querySelectorAll('[data-arm]').forEach(b=>b.onclick=()=>{
     S.percArm=b.dataset.arm==='1'; if(!S.percArm) S.calib=null;
     S.held=null; S.cents=null; save(); renderArm(); renderCongas(); clearDisplay(S.listening);
-  });
-  caja.querySelectorAll('[data-fijo]').forEach(b=>b.onclick=()=>{
-    S.sonidoFijo=b.dataset.fijo==='1'; stopTone(); if(!S.listening) releaseWakeLock(); save(); renderArm();
   });
   caja.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{ S.armSemis=+b.dataset.st; save(); renderArm(); renderCongas(); });
   caja.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
@@ -1259,7 +1269,7 @@ async function playTone(midi, btn, cuerda){
   }
   toneOsc.start();
   playingBtn=btn; playingKey=key; btn.classList.add('playing');
-  if(btn.classList.contains('cg') && S.sonidoFijo) reqWakeLock();
+  if(S.sonidoFijo) reqWakeLock();
   else toneTimeout=setTimeout(stopTone,cuerda?4000:2000);
 }
 function renderTones(){
@@ -1528,6 +1538,7 @@ function renderInst(){
   }).join('');
   instNotasEl.querySelectorAll('button').forEach(b=>b.onclick=()=>playTone(+b.dataset.midi,b,esCuerda));
   instTipEl.textContent = esCuerda ? t.tipCuerda+(S.inst==='bajo'?' '+t.tipBajo:'') : (tp?t.tipTransp:t.tipDo);
+  renderSonido();
   $('instTitle').textContent=t.instTitle; $('instHint').textContent=t.instHint;
 }
 // marca la cuerda (o nota de afinación) más cercana a lo que suena
